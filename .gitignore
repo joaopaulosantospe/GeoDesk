@@ -1,0 +1,11 @@
+node_modules/
+dist/
+dist-win/
+dist-installer/
+dist-builder/
+*.log
+.cache/
+screenshots/
+Verificar
+.DS_Store
+Thumbs.db

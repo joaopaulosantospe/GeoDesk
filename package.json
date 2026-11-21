@@ -1,0 +1,52 @@
+{
+  "name": "geodesk",
+  "productName": "GeoDesk",
+  "version": "1.4.1",
+  "private": true,
+  "description": "GeoDesk - estacao de trabalho geoespacial moderna",
+  "main": "electron/main.cjs",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -k -s first \"vite\" \"wait-on tcp:127.0.0.1:5173 && cross-env ELECTRON_START_URL=http://127.0.0.1:5173 electron .\"",
+    "build": "vite build",
+    "start": "vite build && electron .",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "dist:win": "vite build && electron-builder --win --publish never",
+    "release:win": "node scripts/release-win.mjs",
+    "package:win": "vite build && electron-packager . GeoDesk --platform=win32 --arch=x64 --out=dist-win --overwrite --icon=geodesk.ico --app-version=%npm_package_version% --win32metadata.CompanyName=CENEGED --extra-resource=geodesk.ico --ignore=\"^/(src|scripts|screenshots|samples|skill|public|dist-win|dist-installer|GeoDesk\\.bat|GeoDesk\\.vbs|build-installer\\.bat|installer\\.iss|index\\.html|package-lock\\.json|tsconfig\\.json|vite\\.config\\.ts|geodesk\\.png|\\.git)\"",
+    "build:installer": "build-installer.bat"
+  },
+  "dependencies": {
+    "@turf/turf": "^7.2.0",
+    "electron-updater": "^6.8.11",
+    "exceljs": "^4.4.0",
+    "jspdf": "^2.5.2",
+    "lucide-react": "^0.469.0",
+    "ol": "^10.4.0",
+    "proj4": "^2.12.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "shapefile": "^0.6.6",
+    "sql.js": "^1.15.1",
+    "xlsx": "^0.18.5",
+    "zustand": "^5.0.3"
+  },
+  "devDependencies": {
+    "@electron/packager": "^20.3.0",
+    "@types/geojson": "^7946.0.16",
+    "@types/node": "^22.10.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@types/shapefile": "^0.6.4",
+    "@types/sql.js": "^1.4.11",
+    "@vitejs/plugin-react": "^4.3.4",
+    "concurrently": "^9.1.0",
+    "cross-env": "^7.0.3",
+    "electron": "^33.2.0",
+    "electron-builder": "^26.18.0",
+    "playwright-core": "^1.64.0",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.5",
+    "wait-on": "^8.0.1"
+  }
+}

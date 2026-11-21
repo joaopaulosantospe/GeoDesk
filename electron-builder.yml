@@ -1,0 +1,117 @@
+# =============================================================================
+# GeoDesk — empacotamento para Windows com electron-builder
+#
+# Substitui o pipeline antigo (electron-packager + Inno Setup):
+#   npm run dist:win      -> vite build + electron-builder --win (sem publicar)
+#   npm run release:win   -> idem, mas PUBLICA a release no GitHub
+#
+# Saída em dist-builder/:
+#   GeoDesk_Instalador_v<versão>.exe   instalador NSIS (per-user, pt-BR)
+#   GeoDesk_Instalador_v<versão>.exe.blockmap  pacote diferencial
+#   latest.yml                          manifesto lido pelo electron-updater
+#
+# PUBLICAÇÃO (GitHub Releases, gratuito):
+#   Repositório público https://github.com/joaopaulosantospe/geodesk-updates
+#   Recebe, a cada release (tag v<versão>), instalador + blockmap + latest.yml.
+#   O electron-updater consulta
+#     https://github.com/joaopaulosantospe/geodesk-updates/releases/latest
+#   e baixa os arquivos da release — sem servidor próprio, sem custo.
+#   O token GH é lido do `gh auth login` em tempo de execução (scripts/).
+# =============================================================================
+
+appId: br.com.ceneged.geodesk
+productName: GeoDesk
+copyright: © CENEGED
+
+directories:
+  output: dist-builder
+
+# Somente padrões de exclusão: assim o electron-builder inclui tudo o que é
+# necessário (dist/ com o renderer compilado + node_modules de produção, que é
+# onde fica o electron-updater) e descarta ferramentas de desenvolvimento.
+files:
+  - "!src{,/**/*}"
+  - "!scripts{,/**/*}"
+  - "!public{,/**/*}"
+  - "!samples{,/**/*}"
+  - "!screenshots{,/**/*}"
+  - "!skill{,/**/*}"
+  - "!dist-win{,/**/*}"
+  - "!dist-installer{,/**/*}"
+  - "!.cache{,/**/*}"
+  - "!*.{bat,cmd,ps1,vbs,iss,log,md}"
+  - "!geodesk.png"
+  - "!index.html"
+  - "!package-lock.json"
+  - "!tsconfig.json"
+  - "!vite.config.ts"
+
+# geodesk.ico fora do asar: o Windows Explorer lê o ícone do registro/associações
+# direto do disco (electron/registerAssoc.cjs usa process.resourcesPath).
+extraResources:
+  - from: geodesk.ico
+    to: geodesk.ico
+
+npmRebuild: false
+
+win:
+  icon: geodesk.ico
+  target:
+    - target: nsis
+      arch: [x64]
+
+nsis:
+  # Instalador assistido (como o Inno Setup antigo), por usuário, sem pedir
+  # admin — mesma experiência do instalador anterior (PrivilegesRequired=lowest).
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: GeoDesk
+  uninstallDisplayName: GeoDesk
+  installerIcon: geodesk.ico
+  uninstallerIcon: geodesk.ico
+  installerHeaderIcon: geodesk.ico
+  artifactName: GeoDesk_Instalador_v${version}.${ext}
+  deleteAppDataOnUninstall: false
+  # Gera o .exe.blockmap usado pelo download diferencial do electron-updater.
+  differentialPackage: true
+  # Instalador em português do Brasil (sem seletor de idioma).
+  installerLanguages: ['pt_BR']
+  language: '1046'
+  displayLanguageSelector: false
+
+# Associações de extensão ("Abrir com GeoDesk" / duplo clique) — mesmos ProgIDs
+# do antigo installer.iss. O .mxd NÃO é reivindicado (pertence ao ArcMap).
+fileAssociations:
+  - ext: geodesk
+    name: GeoDesk.Project
+    description: Projeto GeoDesk
+    icon: geodesk.ico
+  - ext: shp
+    name: GeoDesk.Shapefile
+    description: Shapefile (GeoDesk)
+    icon: geodesk.ico
+  - ext: geojson
+    name: GeoDesk.GeoJSON
+    description: GeoJSON (GeoDesk)
+    icon: geodesk.ico
+  - ext: gpkg
+    name: GeoDesk.GeoPackage
+    description: GeoPackage (GeoDesk)
+    icon: geodesk.ico
+  - ext: [qgs, qgz]
+    name: GeoDesk.QGISProject
+    description: Projeto do QGIS (GeoDesk)
+    icon: geodesk.ico
+
+# Canal de atualização (electron-updater) via GitHub Releases.
+# Requer GH_TOKEN — scripts/release-win.mjs obtém do `gh auth token`.
+# releaseType: release => release pública imediata (use "draft" p/ revisar).
+publish:
+  provider: github
+  owner: joaopaulosantospe
+  repo: geodesk-updates
+  releaseType: release
+  channel: latest
