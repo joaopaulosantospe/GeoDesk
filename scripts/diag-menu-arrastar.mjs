@@ -3,6 +3,8 @@
 import { _electron as electron } from 'playwright-core';
 import { mkdirSync } from 'node:fs';
 import { execSync } from 'node:child_process';
+import path from 'node:path';
+import { tmpdir } from 'node:os';
 
 const SHOTS = 'D:/geodesk/screenshots';
 mkdirSync(SHOTS, { recursive: true });
@@ -42,7 +44,7 @@ process.on('uncaughtException', async (err) => {
 app = await electron.launch({
   executablePath: 'D:/geodesk/node_modules/electron/dist/electron.exe',
   // Perfil separado: o GeoDesk em execução segura a trava de instância única.
-  args: ['.', '--user-data-dir=C:/Users/CENEGED/AppData/Local/Temp/opencode/geodesk-e2e-profile'],
+  args: ['.', `--user-data-dir=${path.join(tmpdir(), 'geodesk-e2e-profile')}`],
   cwd: 'D:/geodesk',
   timeout: 60000,
 });

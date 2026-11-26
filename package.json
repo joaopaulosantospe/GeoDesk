@@ -13,7 +13,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "dist:win": "vite build && electron-builder --win --publish never",
     "release:win": "node scripts/release-win.mjs",
-    "package:win": "vite build && electron-packager . GeoDesk --platform=win32 --arch=x64 --out=dist-win --overwrite --icon=geodesk.ico --app-version=%npm_package_version% --win32metadata.CompanyName=CENEGED --extra-resource=geodesk.ico --ignore=\"^/(src|scripts|screenshots|samples|skill|public|dist-win|dist-installer|GeoDesk\\.bat|GeoDesk\\.vbs|build-installer\\.bat|installer\\.iss|index\\.html|package-lock\\.json|tsconfig\\.json|vite\\.config\\.ts|geodesk\\.png|\\.git)\"",
+    "package:win": "vite build && electron-packager . GeoDesk --platform=win32 --arch=x64 --out=dist-win --overwrite --icon=geodesk.ico --app-version=%npm_package_version% --win32metadata.CompanyName=\"João Paulo Santos\" --extra-resource=geodesk.ico --ignore=\"^/(src|scripts|screenshots|samples|skill|public|dist-win|dist-installer|GeoDesk\\.bat|GeoDesk\\.vbs|build-installer\\.bat|installer\\.iss|index\\.html|package-lock\\.json|tsconfig\\.json|vite\\.config\\.ts|geodesk\\.png|\\.git)\"",
     "build:installer": "build-installer.bat"
   },
   "dependencies": {

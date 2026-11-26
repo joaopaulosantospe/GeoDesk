@@ -160,4 +160,4 @@ geodesk/
 ---
 
 ## 📄 Licença
-© CENEGED. Todos os direitos reservados.
+© João Paulo Santos. Licenciado para João Paulo Santos. Todos os direitos reservados.

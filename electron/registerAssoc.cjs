@@ -68,8 +68,9 @@ function registerFileAssociations(app) {
   if (process.platform !== 'win32' || !app) return;
 
   const isDev = !app.isPackaged;
+  const localAppData = process.env.LOCALAPPDATA || (process.env.USERPROFILE ? path.join(process.env.USERPROFILE, 'AppData', 'Local') : '');
   const targetExe = isDev
-    ? path.join(process.env.LOCALAPPDATA || 'C:\\Users\\CENEGED\\AppData\\Local', 'Programs', 'GeoDesk', 'GeoDesk.exe')
+    ? path.join(localAppData, 'Programs', 'GeoDesk', 'GeoDesk.exe')
     : app.getPath('exe');
 
   if (!fs.existsSync(targetExe) && !isDev) return;

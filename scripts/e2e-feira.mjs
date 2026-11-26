@@ -2,10 +2,12 @@ import { _electron as electron } from 'playwright-core';
 import { mkdirSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 
+import path from 'node:path';
 const SHOTS = 'D:/geodesk/screenshots';
 mkdirSync(SHOTS, { recursive: true });
 
-const PASTA = 'C:/Users/CENEGED/Desktop/FEIRA_NOVA';
+const desktop = process.env.USERPROFILE ? path.join(process.env.USERPROFILE, 'Desktop') : '';
+const PASTA = path.join(desktop, 'FEIRA_NOVA');
 const ESPERADOS = [
   { nome: 'DELIMITACAO_MUNICIPIO', feicoes: 1 },
   { nome: 'ILUM_PUB', feicoes: 2871 },
@@ -50,7 +52,7 @@ await step('App abre', async () => {
 });
 
 await step('Importa a pasta FEIRA_NOVA (7 shapefiles)', async () => {
-  await page.setInputFiles('input[webkitdirectory]', 'C:\\Users\\CENEGED\\Desktop\\FEIRA_NOVA');
+  await page.setInputFiles('input[webkitdirectory]', PASTA);
   for (const item of ESPERADOS) {
     await layerByName(item.nome).waitFor({ timeout: 60000 });
   }

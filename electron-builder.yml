@@ -19,9 +19,9 @@
 #   O token GH é lido do `gh auth login` em tempo de execução (scripts/).
 # =============================================================================
 
-appId: br.com.ceneged.geodesk
+appId: com.geodesk.app
 productName: GeoDesk
-copyright: © CENEGED
+copyright: © João Paulo Santos
 
 directories:
   output: dist-builder

@@ -3,7 +3,8 @@ import { mkdirSync } from 'node:fs';
 import { ensureCardOpen, layerMeta, openLayerContextItem, selectTab } from './lib/ui.mjs';
 
 const SHOTS = 'D:/geodesk/screenshots';
-const FEIRA = 'C:/Users/CENEGED/AppData/Local/Temp/opencode/feira';
+import { tmpdir } from 'node:os';
+const FEIRA = path.join(tmpdir(), 'opencode/feira');
 mkdirSync(SHOTS, { recursive: true });
 
 const app = await electron.launch({

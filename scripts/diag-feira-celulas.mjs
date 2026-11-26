@@ -1,7 +1,8 @@
 import proj4 from 'proj4';
 import { readFileSync } from 'node:fs';
 
-const SHP = 'C:/Users/CENEGED/AppData/Local/Temp/opencode/feira/TRAFOS.shp';
+import { tmpdir } from 'node:os';
+const SHP = path.join(tmpdir(), 'opencode/feira/TRAFOS.shp');
 const buf = readFileSync(SHP);
 
 // Cabeçalho .shp: bbox em Xmin(36), Ymin(44), Xmax(52), Ymax(60) — doubles little-endian.

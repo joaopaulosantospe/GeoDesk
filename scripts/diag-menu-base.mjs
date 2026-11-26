@@ -5,10 +5,11 @@ import { mkdirSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 
 const SHOTS = 'D:/geodesk/screenshots';
+import { tmpdir } from 'node:os';
 mkdirSync(SHOTS, { recursive: true });
 
 // Perfil próprio (não conflita com outros diagnósticos em paralelo).
-const PROFILE = 'C:/Users/CENEGED/AppData/Local/Temp/opencode/geodesk-menu-base';
+const PROFILE = path.join(tmpdir(), 'geodesk-menu-base');
 try {
   execSync(
     `powershell -NoProfile -Command "Get-CimInstance Win32_Process -Filter 'Name=''electron.exe''' | Where-Object { $_.CommandLine -like '*geodesk-menu-base*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }"`,

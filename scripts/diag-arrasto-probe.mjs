@@ -2,7 +2,8 @@
 import { _electron as electron } from 'playwright-core';
 import { execSync } from 'node:child_process';
 
-const PROFILE = 'C:/Users/CENEGED/AppData/Local/Temp/opencode/geodesk-drag-probe';
+import { tmpdir } from 'node:os';
+const PROFILE = path.join(tmpdir(), 'geodesk-drag-probe');
 try {
   execSync(
     `powershell -NoProfile -Command "Get-CimInstance Win32_Process -Filter 'Name=''electron.exe''' | Where-Object { $_.CommandLine -like '*geodesk-drag-probe*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }"`,

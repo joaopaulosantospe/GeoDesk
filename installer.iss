@@ -22,8 +22,8 @@
 #ifndef MyAppVersion
 #define MyAppVersion "1.1.1"
 #endif
-#define MyAppPublisher "CENEGED"
-#define MyAppURL "https://ceneged.com.br"
+#define MyAppPublisher "João Paulo Santos"
+#define MyAppURL "https://github.com/joaopaulosantospe/GeoDesk"
 #define MyAppExeName "GeoDesk.exe"
 #define MyAppSourceDir "dist-win\GeoDesk-win32-x64"
 

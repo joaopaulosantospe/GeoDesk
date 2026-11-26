@@ -115,7 +115,7 @@ Auxiliares usados no teste:
   scripts `package:win` / `build:installer` continuam no repo como reserva,
   marcados como LEGADO. O padrão passa a ser `release:win` (ou `dist:win`).
 - **Usuários vindos do Inno Setup antigo:** o instalador NSIS usa outro
-  identificador (AppId `br.com.ceneged.geodesk`), então após instalar a
+  identificador (AppId `com.geodesk.app`), então após instalar a
   primeira versão do electron-builder podem aparecer **duas entradas de
   desinstalação** no Painel de Controle (a antiga, GUID
   `{C8E1925A-7A58-4C82-9D9E-B3A95E7C8120}`, e a nova). Remova manualmente a

@@ -1,5 +1,6 @@
 $wsh = New-Object -ComObject WScript.Shell
-$sc = $wsh.CreateShortcut("C:\Users\CENEGED\Desktop\GeoDesk.lnk")
+$desktop = [Environment]::GetFolderPath("Desktop")
+$sc = $wsh.CreateShortcut("$desktop\GeoDesk.lnk")
 $sc.TargetPath = "wscript.exe"
 $sc.Arguments = """D:\geodesk\GeoDesk.vbs"""
 $sc.WorkingDirectory = "D:\geodesk"
