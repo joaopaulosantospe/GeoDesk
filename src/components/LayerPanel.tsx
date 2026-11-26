@@ -376,7 +376,7 @@ function SymbologyEditor({ layer, onStyle, onReset }: SymbologyEditorProps) {
               />
             </div>
             <div className="sym-presets">
-              {[0, 0.25, 0.5, 0.75, 1].map((pct) => (
+              {[0, 0.5, 1].map((pct) => (
                 <button
                   key={pct}
                   type="button"
