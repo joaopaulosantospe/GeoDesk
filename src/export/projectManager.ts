@@ -1,5 +1,6 @@
 import { getMap, getBasemapLayer, getLayerGeoJSON, addGeoJSONLayer, unregisterVectorLayer, zoomToLayers, setBasemap as applyBasemap } from '../map/mapContext';
 import { useAppStore } from '../store';
+import { clearRegion, getRegionResult } from '../analysis/regionSelect';
 import { downloadText } from './download';
 import type { BasemapId, LayerRecord, LayerStyle, JoinedTable } from '../types';
 
@@ -171,6 +172,9 @@ export async function loadProjectFile(file: File, projectPathOverride?: string |
     unregisterVectorLayer(l.id);
     store.removeLayer(l.id);
   }
+
+  // A seleção por polígono pertence ao projeto anterior — remove polígono e contagem
+  if (getRegionResult()) clearRegion(true);
 
   // Restaura o nome e o caminho do arquivo do projeto
   const diskPath =

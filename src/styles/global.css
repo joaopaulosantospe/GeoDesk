@@ -2592,6 +2592,120 @@ input[type='color']:hover {
 }
 
 /* =========================================================================
+   SELEÇÃO DE REGIÃO POR POLÍGONO (painel flutuante sobre o mapa)
+   ========================================================================= */
+
+.region-select-panel {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 306px;
+  max-width: calc(100% - 24px);
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  z-index: 600;
+  overflow: hidden;
+  animation: fadeIn 0.2s ease;
+}
+
+.region-select-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 8px 7px 10px;
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.region-select-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+  min-width: 0;
+}
+
+.region-select-body {
+  padding: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.region-total {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.region-total-value {
+  font-size: 24px;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  color: var(--accent);
+  line-height: 1;
+}
+
+.region-total-label {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.region-meta {
+  font-size: 11px;
+  color: var(--text-faint);
+}
+
+.region-layer-list {
+  display: grid;
+  gap: 4px;
+  max-height: 148px;
+  overflow-y: auto;
+}
+
+.region-layer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 8px;
+  background: var(--bg-2);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  font-size: 11.5px;
+}
+
+.region-layer-name {
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.region-layer-count {
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+.region-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.region-actions .btn {
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+/* =========================================================================
    UPDATE NOTIFICATION (Auto-check na abertura)
    ========================================================================= */
 

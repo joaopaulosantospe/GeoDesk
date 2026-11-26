@@ -55,10 +55,10 @@ interface AppState {
 export const useAppStore = create<AppState>((set, get) => ({
   layers: [],
   activeLayerId: null,
-  basemapId: 'light',
+  basemapId: 'osm',
   tool: null,
   rightTab: 'attributes',
-  rightPanelOpen: true,
+  rightPanelOpen: false,
   status: 'Pronto',
   streetViewLocation: null,
 

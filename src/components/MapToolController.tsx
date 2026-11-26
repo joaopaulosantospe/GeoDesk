@@ -13,10 +13,11 @@ import { useAppStore } from '../store';
 import { getMap, whenMapReady } from '../map/mapContext';
 import * as identify from '../analysis/identify';
 import * as measure from '../analysis/measure';
+import * as regionSelect from '../analysis/regionSelect';
 import * as streetView from '../analysis/streetView';
 import type Map from 'ol/Map.js';
 
-const ARMED_TOOLS = ['measure-distance', 'measure-area', 'identify', 'street-view'] as const;
+const ARMED_TOOLS = ['measure-distance', 'measure-area', 'region-select', 'identify', 'street-view'] as const;
 
 export default function MapToolController() {
   const tool = useAppStore((s) => s.tool);
@@ -33,6 +34,11 @@ export default function MapToolController() {
       } else if (tool === 'measure-area') {
         measure.activateArea(map);
         setStatus('Ferramenta: Medir Área (clique para desenhar polígono, duplo-clique para concluir)');
+      } else if (tool === 'region-select') {
+        regionSelect.activateRegionSelect(map);
+        setStatus(
+          'Ferramenta: Selecionar Região (clique para traçar o polígono, duplo-clique para concluir)',
+        );
       } else if (tool === 'identify') {
         identify.activateIdentify(map);
         setStatus('Ferramenta: Identificar Feição (clique em qualquer feição no mapa)');
@@ -53,6 +59,7 @@ export default function MapToolController() {
       }
     } else {
       measure.deactivate();
+      regionSelect.deactivate();
       identify.deactivate();
       streetView.deactivateStreetView();
       if (tool === null) {
@@ -63,6 +70,7 @@ export default function MapToolController() {
     return () => {
       cancelled = true;
       measure.deactivate();
+      regionSelect.deactivate();
       identify.deactivate();
       streetView.deactivateStreetView();
     };

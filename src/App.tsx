@@ -9,6 +9,7 @@ import DesktopHeader from './components/DesktopHeader';
 import DragDropOverlay from './components/DragDropOverlay';
 import MapToolController from './components/MapToolController';
 import StreetViewPanel from './components/StreetViewPanel';
+import RegionSelectPanel from './components/RegionSelectPanel';
 import UpdateNotification from './components/UpdateNotification';
 
 export default function App() {
@@ -90,7 +91,10 @@ export default function App() {
         )}
 
         {/* Canvas do Mapa Desobstruído e Limpo */}
-        <div className="map-wrap" ref={mapRef} />
+        <div className="map-wrap" ref={mapRef}>
+          {/* Resultado da seleção por polígono (sobrepõe o mapa) */}
+          <RegionSelectPanel />
+        </div>
 
         {/* Street View 360° flutuando sobre o mapa */}
         <StreetViewPanel />

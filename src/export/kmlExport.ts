@@ -394,6 +394,71 @@ export function generateKmlForAllLayers(): string {
 }
 
 /**
+ * Gera o documento KML para uma lista arbitrária de feições (ex: os pontos
+ * dentro de um polígono desenhado pelo usuário), sem exigir uma camada.
+ */
+export function generateKmlForFeatures(features: Feature<Geometry>[], docName: string): string {
+  const styleLayer: LayerRecord = {
+    id: 'features',
+    name: docName,
+    kind: 'analysis',
+    visible: true,
+    opacity: 1,
+    crs: 'EPSG:4326',
+    fields: [],
+    featureCount: features.length,
+    geometryTypes: [],
+    style: {
+      strokeColor: '#c026d3',
+      fillColor: '#c026d333',
+      strokeWidth: 2,
+      pointRadius: 5,
+      pointShape: 'pin',
+    },
+  };
+  const styleId = 'style_features';
+  const styleDef = buildLayerStyle(styleLayer);
+  const placemarks = buildPlacemarks(features, styleId);
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>${escapeXml(docName)}</name>
+    <open>1</open>
+${styleDef}
+    <Folder>
+      <name>${escapeXml(docName)}</name>
+      <open>0</open>
+${placemarks.join('')}
+    </Folder>
+  </Document>
+</kml>`;
+}
+
+/**
+ * Exporta uma lista arbitrária de feições para KML ou KMZ.
+ */
+export async function exportFeaturesKML(
+  features: Feature<Geometry>[],
+  name: string,
+  format: 'kml' | 'kmz' = 'kml',
+): Promise<void> {
+  if (features.length === 0) throw new Error('Nenhuma feição para exportar');
+
+  const kmlString = generateKmlForFeatures(features, name);
+  const baseFilename = slug(name || 'feicoes');
+
+  if (format === 'kmz') {
+    const zip = new JSZip();
+    zip.file('doc.kml', kmlString);
+    const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
+    downloadBlob(`${baseFilename}.kmz`, blob);
+  } else {
+    downloadText(`${baseFilename}.kml`, kmlString, 'application/vnd.google-earth.kml+xml');
+  }
+}
+
+/**
  * Exporta uma única camada para KML ou KMZ.
  */
 export async function exportLayerKML(layerId: string, format: 'kmz' | 'kml' = 'kmz'): Promise<void> {

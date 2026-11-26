@@ -52,44 +52,46 @@ export function getFeatureFid(feature: Feature<Geometry>, index: number): number
 }
 
 /**
- * Exporta a tabela de atributos da camada para Excel (.xlsx) na ordem exata padrão:
+ * Coleta os campos intermediários (exclui campos especiais), na ordem dada
+ * (ex: `layer.fields`) e completando com o que existir nas feições.
+ */
+function collectMiddleFields(features: Feature<Geometry>[], seed: string[] = []): string[] {
+  const seen = new Set<string>();
+  const fields: string[] = [];
+  const add = (rawKey: string) => {
+    const key = rawKey.trim();
+    if (!key || shouldExcludeExportField(key) || seen.has(key.toLowerCase())) return;
+    seen.add(key.toLowerCase());
+    fields.push(key);
+  };
+  seed.forEach(add);
+  for (const feature of features) {
+    for (const rawKey of Object.keys(feature.getProperties())) add(rawKey);
+  }
+  return fields;
+}
+
+interface ExcelTableOptions {
+  features: Feature<Geometry>[];
+  middleFields: string[];
+  /** Colunas extras entre FID_1 e os atributos, alinhadas por índice às feições. */
+  leadingColumns?: { header: string; values: unknown[] }[];
+  sheetName: string;
+  filename: string;
+}
+
+/**
+ * Monta a planilha no padrão ArcMap e dispara o download:
  * - 1ª coluna: OBJECTID (1, 2, 3...)
  * - 2ª coluna: FID_1 (identificador original do ponto: 414, 539, 32...)
+ * - Colunas extras (quando fornecidas)
  * - Colunas intermediárias na ordem dos atributos (Id, NU_INSTALA, PLACA...)
  * - Colunas finais da ligação: OID_1, PageName, PageNumber
  * - Sem Join_Count e sem ShapeName
  * - Linhas com altura padrão do Excel (15pt dados, 18pt cabeçalho) e largura de colunas otimizada
  */
-export async function exportLayerExcel(layerId: string): Promise<void> {
-  const source = getLayerSource(layerId);
-  if (!source) throw new Error('Camada indisponível para exportação');
-  const layer = useAppStore.getState().layers.find((l) => l.id === layerId);
-  if (!layer) throw new Error('Camada não encontrada');
-  const features = source.getFeatures();
-  if (features.length === 0) throw new Error('A camada não possui registros para exportar');
-
-  // Coleta os campos intermediários (exclui campos especiais)
-  const middleFieldSet = new Set<string>();
-  const middleFields: string[] = [];
-
-  for (const field of layer.fields) {
-    const key = field.name.trim();
-    if (!shouldExcludeExportField(key) && !middleFieldSet.has(key.toLowerCase())) {
-      middleFieldSet.add(key.toLowerCase());
-      middleFields.push(key);
-    }
-  }
-
-  for (const feature of features) {
-    const props = feature.getProperties();
-    for (const rawKey of Object.keys(props)) {
-      const key = rawKey.trim();
-      if (!shouldExcludeExportField(key) && !middleFieldSet.has(key.toLowerCase())) {
-        middleFieldSet.add(key.toLowerCase());
-        middleFields.push(key);
-      }
-    }
-  }
+async function downloadExcelTable(options: ExcelTableOptions): Promise<void> {
+  const { features, middleFields, leadingColumns = [] } = options;
 
   // Verifica presença de campos da ligação (OID_1, PageName, PageNumber)
   let hasOid1 = false;
@@ -114,14 +116,20 @@ export async function exportLayerExcel(layerId: string): Promise<void> {
   if (hasPageName) trailingFields.push('PageName');
   if (hasPageNumber) trailingFields.push('PageNumber');
 
-  // Ordem exata: OBJECTID, FID_1, [campos intermediários], OID_1, PageName, PageNumber
-  const headers = ['OBJECTID', 'FID_1', ...middleFields, ...trailingFields];
+  // Ordem exata: OBJECTID, FID_1, [extras], [campos intermediários], OID_1, PageName, PageNumber
+  const headers = [
+    'OBJECTID',
+    'FID_1',
+    ...leadingColumns.map((column) => column.header),
+    ...middleFields,
+    ...trailingFields,
+  ];
 
   const workbook = new ExcelJS.Workbook();
   workbook.creator = 'GeoDesk';
   workbook.created = new Date();
 
-  const sheetName = (layer.name || 'Dados').slice(0, 31).replace(/[:\\/?*[\]]/g, '_');
+  const sheetName = (options.sheetName || 'Dados').slice(0, 31).replace(/[:\\/?*[\]]/g, '_');
   const worksheet = workbook.addWorksheet(sheetName, {
     views: [{ showGridLines: true }],
   });
@@ -160,6 +168,7 @@ export async function exportLayerExcel(layerId: string): Promise<void> {
     const rowValues: unknown[] = [
       index + 1,
       getFeatureFid(feature, index),
+      ...leadingColumns.map((column) => column.values[index] ?? ''),
     ];
 
     for (const field of middleFields) {
@@ -222,12 +231,55 @@ export async function exportLayerExcel(layerId: string): Promise<void> {
   });
 
   const buffer = await workbook.xlsx.writeBuffer();
-  const filename = `${slug(layer.name || 'dados_tabela')}.xlsx`;
 
   downloadBlob(
-    filename,
+    options.filename,
     new Blob([buffer], {
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     }),
   );
+}
+
+/**
+ * Exporta a tabela de atributos da camada para Excel (.xlsx) na ordem exata padrão.
+ */
+export async function exportLayerExcel(layerId: string): Promise<void> {
+  const source = getLayerSource(layerId);
+  if (!source) throw new Error('Camada indisponível para exportação');
+  const layer = useAppStore.getState().layers.find((l) => l.id === layerId);
+  if (!layer) throw new Error('Camada não encontrada');
+  const features = source.getFeatures();
+  if (features.length === 0) throw new Error('A camada não possui registros para exportar');
+
+  const middleFields = collectMiddleFields(
+    features,
+    layer.fields.map((field) => field.name),
+  );
+
+  await downloadExcelTable({
+    features,
+    middleFields,
+    sheetName: layer.name || 'Dados',
+    filename: `${slug(layer.name || 'dados_tabela')}.xlsx`,
+  });
+}
+
+/**
+ * Exporta uma lista arbitrária de feições (ex: pontos dentro de um polígono)
+ * para Excel (.xlsx), com colunas extras opcionais (ex: camada de origem).
+ */
+export async function exportFeaturesExcel(
+  features: Feature<Geometry>[],
+  name: string,
+  leadingColumns?: { header: string; values: unknown[] }[],
+): Promise<void> {
+  if (features.length === 0) throw new Error('Nenhuma feição para exportar');
+
+  await downloadExcelTable({
+    features,
+    middleFields: collectMiddleFields(features),
+    leadingColumns,
+    sheetName: name || 'Dados',
+    filename: `${slug(name || 'feicoes')}.xlsx`,
+  });
 }

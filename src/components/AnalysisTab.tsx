@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAppStore } from '../store';
 import { clearSelection, getSelection } from '../map/mapContext';
-import { useMeasurement } from '../analysis/measure';
+import { formatArea, useMeasurement } from '../analysis/measure';
+import { clearRegion, useRegionResult } from '../analysis/regionSelect';
 import { bufferActiveLayer, describeLayer, intersectLayers } from '../analysis/spatial';
 import { describeCellGroundSize, generateGrid } from '../analysis/grid';
 import type { GridOrigin, GridUnit } from '../analysis/grid';
 import CollapsibleCard from './CollapsibleCard';
+import { RegionExportActions } from './RegionSelectPanel';
 
 const GROUND_UNITS: { value: GridUnit; label: string }[] = [
   { value: 'm', label: 'Metros' },
@@ -53,6 +55,7 @@ export default function AnalysisTab() {
   const setStatus = useAppStore((s) => s.setStatus);
   const tool = useAppStore((s) => s.tool);
   const measurement = useMeasurement();
+  const regionResult = useRegionResult();
 
   const [entries, setEntries] = useState<LogEntry[]>(logEntries);
   const [distance, setDistance] = useState('100');
@@ -94,8 +97,16 @@ export default function AnalysisTab() {
     }
   }, [selectedCount, gridBase]);
 
+  const [selectedBufferLayer, setSelectedBufferLayer] = useState<string>('');
+  const fallbackBuffer =
+    activeLayerId && layers.some((layer) => layer.id === activeLayerId)
+      ? activeLayerId
+      : layers[0]?.id || '';
   const bufferLayerId =
-    activeLayerId && layers.some((layer) => layer.id === activeLayerId) ? activeLayerId : '';
+    selectedBufferLayer && layers.some((layer) => layer.id === selectedBufferLayer)
+      ? selectedBufferLayer
+      : fallbackBuffer;
+
   const fallbackA = bufferLayerId || layers[0]?.id || '';
   const resolvedA = layers.some((layer) => layer.id === layerA) ? layerA : fallbackA;
   const fallbackB = layers.find((layer) => layer.id !== resolvedA)?.id ?? '';
@@ -106,7 +117,7 @@ export default function AnalysisTab() {
     const value = Number(distance.replace(',', '.'));
     setError(null);
     try {
-      const result = bufferActiveLayer(value, unit);
+      const result = bufferActiveLayer(value, unit, bufferLayerId);
       if ('error' in result) {
         setError(result.error);
         setStatus(`Erro no buffer: ${result.error}`);
@@ -250,11 +261,16 @@ export default function AnalysisTab() {
             id="analysis-buffer-layer"
             value={bufferLayerId}
             disabled={layers.length === 0}
-            onChange={(event) => setActiveLayer(event.target.value)}
+            onChange={(event) => {
+              setSelectedBufferLayer(event.target.value);
+              setActiveLayer(event.target.value);
+            }}
           >
-            <option value="" disabled>
-              Selecione uma camada
-            </option>
+            {layers.length === 0 && (
+              <option value="" disabled>
+                Nenhuma camada carregada
+              </option>
+            )}
             {layers.map((layer) => {
               const info = describeLayer(layer.id);
               return (
@@ -292,6 +308,11 @@ export default function AnalysisTab() {
             Executar buffer
           </button>
         </div>
+        {layers.length === 0 && (
+          <p className="muted" style={{ fontSize: 11, marginTop: 6 }}>
+            Adicione uma camada (Shapefile, GeoJSON ou GeoPackage) para habilitar o buffer.
+          </p>
+        )}
       </CollapsibleCard>
 
       <CollapsibleCard id="intersect" title="Interseção espacial">
@@ -303,6 +324,11 @@ export default function AnalysisTab() {
             disabled={layers.length === 0}
             onChange={(event) => setLayerA(event.target.value)}
           >
+            {layers.length === 0 && (
+              <option value="" disabled>
+                Nenhuma camada carregada
+              </option>
+            )}
             {layers.map((layer) => {
               const info = describeLayer(layer.id);
               return (
@@ -321,6 +347,11 @@ export default function AnalysisTab() {
             disabled={layers.length === 0}
             onChange={(event) => setLayerB(event.target.value)}
           >
+            {layers.length === 0 && (
+              <option value="" disabled>
+                Nenhuma camada carregada
+              </option>
+            )}
             {layers.map((layer) => {
               const info = describeLayer(layer.id);
               return (
@@ -340,6 +371,13 @@ export default function AnalysisTab() {
             Executar interseção
           </button>
         </div>
+        {layers.length < 2 && (
+          <p className="muted" style={{ fontSize: 11, marginTop: 6 }}>
+            {layers.length === 0
+              ? 'Adicione pelo menos 2 camadas poligonais para calcular a interseção.'
+              : 'Carregue uma segunda camada poligonal para calcular a área de sobreposição.'}
+          </p>
+        )}
       </CollapsibleCard>
 
       <CollapsibleCard id="grid" title="Feições de Índice da Grade">
@@ -585,6 +623,34 @@ export default function AnalysisTab() {
             Limpar seleção
           </button>
         </div>
+      </CollapsibleCard>
+
+      <CollapsibleCard id="region-select" title="Seleção por Região">
+        {regionResult ? (
+          <>
+            <div className="stats-grid">
+              <div className="stat-box">
+                <div className="stat-value">{regionResult.total.toLocaleString('pt-BR')}</div>
+                <div className="stat-label">Pontos dentro</div>
+              </div>
+              <div className="stat-box">
+                <div className="stat-value">{formatArea(regionResult.areaSqM)}</div>
+                <div className="stat-label">Área do polígono</div>
+              </div>
+            </div>
+            <RegionExportActions result={regionResult} />
+            <div className="btn-row">
+              <button className="btn" onClick={() => clearRegion()}>
+                Limpar região
+              </button>
+            </div>
+          </>
+        ) : (
+          <div className="muted">
+            Nenhuma região delimitada. Use a ferramenta <strong>Selecionar Região (P)</strong> na
+            barra superior para traçar um polígono e contar os pontos dentro dele.
+          </div>
+        )}
       </CollapsibleCard>
 
       <CollapsibleCard id="measurement" title="Última medição">

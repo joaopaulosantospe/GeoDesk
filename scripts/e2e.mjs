@@ -3,6 +3,7 @@ import { mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { writeShapefileFixture } from './lib/fixture-shp.mjs';
+import { SEL, loadSample, openInspector, selectTab, setBasemap } from './lib/ui.mjs';
 
 const SHOTS = 'D:/geodesk/screenshots';
 mkdirSync(SHOTS, { recursive: true });
@@ -51,16 +52,14 @@ await step('App abre e renderiza a interface', async () => {
 });
 
 await step(`Carrega amostra "${NOME_BRASIL}"`, async () => {
-  await page.click('button:has-text("Amostras")');
-  await page.click(`button:has-text("${NOME_BRASIL}")`);
+  await loadSample(page, NOME_BRASIL);
   await page.waitForSelector(`.layer-item:has-text("${NOME_BRASIL}")`, { timeout: 30000 });
   const status = await page.textContent('.status-bar');
   if (!status?.includes('carregada')) throw new Error(`status inesperado: ${status?.slice(0, 120)}`);
 });
 
 await step('Carrega amostra "Pontos de monitoramento"', async () => {
-  await page.click('button:has-text("Amostras")');
-  await page.click('button:has-text("Pontos de monitoramento")');
+  await loadSample(page, 'Pontos de monitoramento');
   await layerByName(NOME_PONTOS).waitFor({ timeout: 20000 });
   const count = await page.locator('.layer-item').count();
   if (count < 2) throw new Error(`esperava 2 camadas, veio ${count}`);
@@ -71,6 +70,7 @@ await step('Carrega amostra "Pontos de monitoramento"', async () => {
 
 await step('Tabela de atributos da camada ativa', async () => {
   await layerByName(NOME_PONTOS).locator('.layer-name').click();
+  await openInspector(page);
   await page.waitForSelector('.attr-table tbody tr', { timeout: 15000 });
   const rows = await page.locator('.attr-table tbody tr').count();
   if (rows < 80) throw new Error(`esperava ~90 linhas, veio ${rows}`);
@@ -88,20 +88,22 @@ await step('Busca na tabela de atributos', async () => {
 });
 
 await step('Centraliza camada e identifica feição no mapa', async () => {
-  await layerByName(NOME_BRASIL).locator('.icon-btn[title="Centralizar na camada"]').click();
+  await layerByName(NOME_BRASIL)
+    .locator('.layer-action-btn[title="Centralizar nesta camada no mapa"]')
+    .click();
   await page.waitForTimeout(900);
-  await page.click('button:has-text("Identificar")');
+  await page.click(SEL.identify);
   const box = await page.locator('.map-wrap').boundingBox();
   await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
   await page.waitForSelector('.popup-card', { timeout: 8000 });
   const popup = await page.textContent('.popup-card');
   if (!popup || popup.trim().length < 10) throw new Error('popup vazio');
   await page.screenshot({ path: `${SHOTS}/04-identificar.png` });
-  await page.click('button:has-text("Identificar")');
+  await page.click(SEL.identify);
 });
 
 await step('Medição de distância no mapa', async () => {
-  await page.click('button:has-text("Medir distância")');
+  await page.click(SEL.measureDistance);
   const box = await page.locator('.map-wrap').boundingBox();
   const cx = box.x + box.width / 2;
   const cy = box.y + box.height / 2;
@@ -112,12 +114,12 @@ await step('Medição de distância no mapa', async () => {
   const label = await page.textContent('.overlay-label');
   if (!label || !/(km|m)/.test(label)) throw new Error(`rótulo inválido: ${label}`);
   await page.screenshot({ path: `${SHOTS}/05-medicao.png` });
-  await page.click('button:has-text("Medir distância")');
+  await page.click(SEL.measureDistance);
   return label.trim();
 });
 
 await step('Buffer de 5 km na camada de pontos', async () => {
-  await page.click('.tab:has-text("Análise")');
+  await selectTab(page, 'Análise');
   const pontosValue = await page.evaluate((nome) => {
     const sel = document.querySelector('#analysis-buffer-layer');
     const opt = [...sel.options].find((o) => o.textContent?.startsWith(nome));
@@ -138,7 +140,7 @@ await step('Buffer de 5 km na camada de pontos', async () => {
 
 await step('Aba Relatório mostra estatísticas', async () => {
   await layerByName(NOME_PONTOS).locator('.layer-name').click();
-  await page.click('.tab:has-text("Relatório")');
+  await selectTab(page, 'Relatório');
   await page.waitForSelector('.stat-box', { timeout: 8000 });
   const text = await page.textContent('.tab-content');
   if (!text?.includes('Feições')) throw new Error('sem estatísticas visíveis');
@@ -146,27 +148,26 @@ await step('Aba Relatório mostra estatísticas', async () => {
 });
 
 await step('Alternar basemap offline (Claro ↔ Escuro)', async () => {
-  await page.click('.basemap-chip:has-text("Claro")');
+  await setBasemap(page, 'Claro (Vetor)');
   await page.waitForTimeout(700);
   const bgClaro = await page.locator('.ol-viewport').evaluate((el) => el.style.backgroundColor);
-  if (bgClaro !== 'rgb(241, 245, 249)') throw new Error(`fundo não clareou: "${bgClaro}"`);
+  if (bgClaro !== 'rgb(248, 250, 252)') throw new Error(`fundo não clareou: "${bgClaro}"`);
   await page.screenshot({ path: `${SHOTS}/09-basemap-claro.png` });
-  await page.click('.basemap-chip:has-text("Escuro")');
+  await setBasemap(page, 'Escuro (Vetor)');
   await page.waitForTimeout(400);
   const bgEscuro = await page.locator('.ol-viewport').evaluate((el) => el.style.backgroundColor);
   if (bgEscuro !== 'rgb(10, 12, 16)') throw new Error(`fundo não escureceu: "${bgEscuro}"`);
 });
 
 await step('Alternar basemap Satélite (online) e voltar', async () => {
-  await page.click('.basemap-chip:has-text("Satélite")');
+  await setBasemap(page, 'Esri Satélite');
   await page.waitForTimeout(1800);
-  const chip = page.locator('.basemap-chip:has-text("Satélite")');
-  const active = await chip.evaluate((el) => el.classList.contains('active'));
-  if (!active) throw new Error('chip Satélite não ficou ativo');
+  const rotulo = ((await page.textContent('.toolbar-btn:has-text("Esri Satélite")').catch(() => '')) ?? '').trim();
+  if (!rotulo.includes('Esri Satélite')) throw new Error(`seletor de mapa base não atualizou: "${rotulo}"`);
   const attr = (await page.textContent('.ol-attribution')) ?? '';
   if (!attr.includes('Esri')) throw new Error(`atribuição Esri ausente em: "${attr.slice(0, 120)}"`);
   await page.screenshot({ path: `${SHOTS}/10-basemap-satelite.png` });
-  await page.click('.basemap-chip:has-text("Escuro")');
+  await setBasemap(page, 'Escuro (Vetor)');
   await page.waitForTimeout(600);
   const attrDepois = (await page.textContent('.ol-attribution')) ?? '';
   if (attrDepois.includes('Esri')) throw new Error('atribuição Esri permaneceu após voltar ao Escuro');
@@ -177,13 +178,15 @@ await step('Shapefile individual (.shp só): companions do disco montam a tabela
   writeShapefileFixture(dir, 'TRAFO_FIXTURE');
 
   // Usuário escolhe apenas o .shp — .dbf/.prj/.cpg têm de vir do disco automaticamente.
-  await page.locator('input[accept=".shp,.dbf,.prj"]').setInputFiles(join(dir, 'TRAFO_FIXTURE.shp'));
+  await page
+    .locator('.desktop-header-shell input[accept=".shp,.dbf,.prj,.cpg"]')
+    .setInputFiles(join(dir, 'TRAFO_FIXTURE.shp'));
   await layerByName('TRAFO_FIXTURE').waitFor({ timeout: 20000 });
   const status = (await page.textContent('.status-bar')) ?? '';
   if (status.includes('ausente')) throw new Error(`companions não vieram do disco: ${status.slice(0, 160)}`);
 
   await layerByName('TRAFO_FIXTURE').click({ button: 'right' });
-  await page.locator('.ctx-item:has-text("Abrir Tabela de Atributos")').click();
+  await page.locator('.ctx-item:has-text("Tabela de Atributos")').click();
   await page.waitForSelector('.attr-table thead th', { timeout: 10000 });
   const headers = (await page.locator('.attr-table thead th').allTextContents()).map((t) => t.trim());
   if (!headers.includes('COD') || !headers.includes('VALOR')) {

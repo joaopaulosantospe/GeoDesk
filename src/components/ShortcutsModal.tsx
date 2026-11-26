@@ -1,4 +1,4 @@
-import { Keyboard, X, MousePointer, MousePointerClick, Ruler, SquareDashedMousePointer, Layers, ZoomIn, Save, SaveAll, Compass, Power } from 'lucide-react';
+import { Keyboard, X, MousePointer, MousePointerClick, Ruler, SquareDashedMousePointer, Pentagon, Layers, ZoomIn, Save, SaveAll, Compass, Power } from 'lucide-react';
 
 interface ShortcutsModalProps {
   onClose: () => void;
@@ -11,6 +11,7 @@ const SHORTCUTS = [
   { key: 'I', label: 'Identificar Feição', desc: 'Clique em qualquer feição para ver seus atributos detalhados', icon: MousePointerClick },
   { key: 'D', label: 'Medir Distância', desc: 'Clique no mapa para traçar segmentos; clique duas vezes para finalizar', icon: Ruler },
   { key: 'A', label: 'Medir Área', desc: 'Trace um polígono para calcular área em hectares, km² e m²', icon: SquareDashedMousePointer },
+  { key: 'P', label: 'Selecionar Região', desc: 'Trace um polígono para contar os pontos dentro dele e exportar em Excel ou KML', icon: Pentagon },
   { key: 'B', label: 'Gerar Buffer', desc: 'Abre a ferramenta de zona de amortecimento para a camada ativa', icon: Layers },
   { key: 'S', label: 'Google Street View 360°', desc: 'Clique em qualquer via ou ponto no mapa para ver imagens panorâmicas 360°', icon: Compass },
   { key: 'Shift + Scroll', label: 'Zoom de Alta Precisão', desc: 'Ajuste suave e contínuo de escala no mapa', icon: ZoomIn },

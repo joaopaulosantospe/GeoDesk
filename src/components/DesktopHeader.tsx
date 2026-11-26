@@ -30,6 +30,7 @@ import {
   PanelLeftOpen,
   PanelRightClose,
   PanelRightOpen,
+  Pentagon,
   Plus,
   Power,
   RefreshCw,
@@ -179,6 +180,8 @@ export default function DesktopHeader({
         setRightTab('analysis');
         setTool('buffer');
         openRightPanel();
+      } else if (!e.ctrlKey && !e.metaKey && !e.altKey && (e.key === 'p' || e.key === 'P')) {
+        setTool(tool === 'region-select' ? null : 'region-select');
       } else if (!e.ctrlKey && !e.metaKey && !e.altKey && (e.key === 's' || e.key === 'S')) {
         setTool(tool === 'street-view' ? null : 'street-view');
       }
@@ -873,6 +876,11 @@ export default function DesktopHeader({
                   <span className="menu-item-text">Medir Área Poligonal</span>
                   <span className="menu-item-shortcut">A</span>
                 </button>
+                <button type="button" className="menu-item" onClick={() => { setActiveMenu(null); setTool('region-select'); }}>
+                  <Pentagon size={14} />
+                  <span className="menu-item-text">Selecionar Região por Polígono</span>
+                  <span className="menu-item-shortcut">P</span>
+                </button>
                 <button type="button" className="menu-item" onClick={() => { setActiveMenu(null); setTool('street-view'); }}>
                   <Compass size={14} />
                   <span className="menu-item-text">Google Street View 360°</span>
@@ -1090,6 +1098,14 @@ export default function DesktopHeader({
             onClick={() => setTool(tool === 'measure-area' ? null : 'measure-area')}
           >
             <CircleDashed size={14} />
+          </button>
+          <button
+            type="button"
+            className={`toolbar-btn ${tool === 'region-select' ? 'active' : ''}`}
+            title="Selecionar Região por Polígono (P) — conta e exporta os pontos dentro"
+            onClick={() => setTool(tool === 'region-select' ? null : 'region-select')}
+          >
+            <Pentagon size={14} />
           </button>
           <button
             type="button"

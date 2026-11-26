@@ -124,6 +124,7 @@ export interface LayerRecord {
 export type ToolId =
   | 'measure-distance'
   | 'measure-area'
+  | 'region-select'
   | 'buffer'
   | 'intersect'
   | 'grid'

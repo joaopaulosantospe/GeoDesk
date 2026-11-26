@@ -1,5 +1,6 @@
 import { _electron as electron } from 'playwright-core';
 import { mkdirSync } from 'node:fs';
+import { ensureCardOpen, layerMeta, openLayerContextItem, selectTab } from './lib/ui.mjs';
 
 const SHOTS = 'D:/geodesk/screenshots';
 const FEIRA = 'C:/Users/CENEGED/AppData/Local/Temp/opencode/feira';
@@ -26,7 +27,7 @@ const shot = async (path) => {
 await page.waitForSelector('.app-shell', { timeout: 25000 });
 
 // 1) Importa o shapefile real de trafo
-await page.setInputFiles('input[accept=".shp,.dbf,.prj"]', [
+await page.setInputFiles('.desktop-header-shell input[accept=".shp,.dbf,.prj,.cpg"]', [
   `${FEIRA}/TRAFOS.shp`,
   `${FEIRA}/TRAFOS.dbf`,
   `${FEIRA}/TRAFOS.prj`,

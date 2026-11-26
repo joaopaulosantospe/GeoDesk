@@ -113,12 +113,12 @@ function registerAnalysisLayer(options: {
   return { count: info.count };
 }
 
-export function bufferActiveLayer(distance: number, unit: 'm' | 'km'): SpatialResult {
+export function bufferActiveLayer(distance: number, unit: 'm' | 'km', targetLayerId?: string): SpatialResult {
   const state = useAppStore.getState();
-  const id = state.activeLayerId;
-  if (!id) return { error: 'Selecione uma camada ativa antes de executar o buffer.' };
+  const id = targetLayerId || state.activeLayerId;
+  if (!id) return { error: 'Selecione uma camada antes de executar o buffer.' };
   const record = state.layers.find((layer) => layer.id === id);
-  if (!record) return { error: 'A camada ativa não foi encontrada.' };
+  if (!record) return { error: 'A camada selecionada não foi encontrada.' };
   if (!Number.isFinite(distance) || distance <= 0) {
     return { error: 'Informe uma distância maior que zero.' };
   }
@@ -176,6 +176,41 @@ export function bufferActiveLayer(distance: number, unit: 'm' | 'km'): SpatialRe
   return result;
 }
 
+/**
+ * Atributos do resultado da interseção: os campos da Camada A entram como estão
+ * e os da Camada B completam a tabela. Quando o nome já existe (colisão), o campo
+ * da Camada B ganha o sufixo `_B` (depois `_B2`, …), como faz o ArcMap/ArcGIS.
+ */
+function mergeIntersectionProperties(
+  propertiesA: Record<string, unknown> | null,
+  propertiesB: Record<string, unknown> | null,
+): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  const taken = new Set<string>();
+
+  const addAll = (source: Record<string, unknown> | null): void => {
+    for (const [key, value] of Object.entries(source ?? {})) {
+      // "geometry" não é atributo: a tabela deriva os campos das properties.
+      if (key === 'geometry') continue;
+      let target = key;
+      if (taken.has(target)) {
+        let index = 2;
+        target = `${key}_B`;
+        while (taken.has(target)) {
+          target = `${key}_B${index}`;
+          index += 1;
+        }
+      }
+      taken.add(target);
+      out[target] = value;
+    }
+  };
+
+  addAll(propertiesA);
+  addAll(propertiesB);
+  return out;
+}
+
 export function intersectLayers(layerIdA: string, layerIdB: string): SpatialResult {
   const state = useAppStore.getState();
   const recordA = state.layers.find((layer) => layer.id === layerIdA);
@@ -205,7 +240,11 @@ export function intersectLayers(layerIdA: string, layerIdB: string): SpatialResu
         if (!shared) continue;
         const polygonal = normalizePolygonal(shared.geometry);
         if (!polygonal) continue;
-        out.push({ type: 'Feature', properties: {}, geometry: polygonal });
+        out.push({
+          type: 'Feature',
+          properties: mergeIntersectionProperties(a.properties ?? null, b.properties ?? null),
+          geometry: polygonal,
+        });
       } catch {
         continue;
       }
