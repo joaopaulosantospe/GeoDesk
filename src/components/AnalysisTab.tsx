@@ -5,7 +5,7 @@ import { formatArea, useMeasurement } from '../analysis/measure';
 import { clearRegion, useRegionResult } from '../analysis/regionSelect';
 import { bufferActiveLayer, describeLayer, intersectLayers } from '../analysis/spatial';
 import { describeCellGroundSize, generateGrid } from '../analysis/grid';
-import type { GridOrigin, GridUnit } from '../analysis/grid';
+import type { GridNaming, GridOrigin, GridUnit } from '../analysis/grid';
 import CollapsibleCard from './CollapsibleCard';
 import { RegionExportActions } from './RegionSelectPanel';
 
@@ -72,6 +72,7 @@ export default function AnalysisTab() {
   const [gridUnit, setGridUnit] = useState<GridUnit>('m');
   const [gridClip, setGridClip] = useState(true);
   const [gridLabels, setGridLabels] = useState(true);
+  const [gridNaming, setGridNaming] = useState<GridNaming>('alpha');
   const [gridPageScale, setGridPageScale] = useState(false);
   const [gridScale, setGridScale] = useState('');
   const [gridOriginX, setGridOriginX] = useState('');
@@ -197,6 +198,7 @@ export default function AnalysisTab() {
         startPage: gridPageScale ? parseOptionalInt(gridStartPage) ?? 1 : 1,
         clipToInput: gridClip,
         labelCells: gridLabels,
+        gridNaming,
       });
       if ('error' in result) {
         setError(result.error);
@@ -444,6 +446,23 @@ export default function AnalysisTab() {
           />
           Rotular as células com o ShapeName (opcional)
         </label>
+
+        {gridLabels && (
+          <div className="field" style={{ marginTop: 2, marginBottom: 8 }}>
+            <label htmlFor="analysis-grid-naming" style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+              Formato do ShapeName
+            </label>
+            <select
+              id="analysis-grid-naming"
+              value={gridNaming}
+              onChange={(event) => setGridNaming(event.target.value as GridNaming)}
+            >
+              <option value="alpha">Alfabético sequencial (A, B, C...)</option>
+              <option value="matrix">Matriz Linha/Coluna (A1, A2, B1...)</option>
+              <option value="numeric">Numérico sequencial (1, 2, 3...)</option>
+            </select>
+          </div>
+        )}
 
         {gridPageScale && (
           <div className="field">

@@ -32,17 +32,21 @@ const GRID_STYLE: Partial<LayerStyle> = {
   strokeWidth: 1,
 };
 
-/** Rótulo de cada célula com o ShapeName (A1, B2…), como no ArcMap. */
+/** Rótulo de cada célula com o ShapeName (A, B, C…), com destaque nítido. */
 const GRID_LABELS: LabelStyle = {
   enabled: true,
   field: 'ShapeName',
   color: '#0b0f17',
   fontFamily: 'Segoe UI',
-  fontSize: 12,
+  fontSize: 13,
+  bold: true,
+  haloColor: '#ffffff',
+  haloWidth: 3,
 };
 
 export type GridUnit = 'mm' | 'cm' | 'm' | 'km' | 'in' | 'ft';
 export type GridOrigin = 'view' | 'selection' | 'layer';
+export type GridNaming = 'alpha' | 'matrix' | 'numeric';
 
 export interface GridOptions {
   /** Classe de Feição de Saída (nome da camada gerada). */
@@ -72,6 +76,8 @@ export interface GridOptions {
   clipToInput: boolean;
   /** "Rotular as células com o ShapeName" (padrão: ligado). */
   labelCells?: boolean;
+  /** Formato do ShapeName: 'alpha' (A, B, C...), 'matrix' (A1, A2...) ou 'numeric' (1, 2, 3...). Padrão: 'alpha'. */
+  gridNaming?: GridNaming;
 }
 
 export type GridResult = { count: number; name: string; clipped: number } | { error: string };
@@ -266,31 +272,52 @@ export function generateGrid(options: GridOptions): GridResult {
     ? markIntersectingCells(cells, inputs, { utm, x0, y0, widthM, heightM, rows, cols })
     : null;
 
+  const naming: GridNaming = options.gridNaming ?? 'alpha';
   const features: Feature<Polygon>[] = [];
   let clipped = 0;
   let page = startPage;
+  let alphaSeq = Math.max(0, startPage - 1);
 
-  for (let index = 0; index < cells.length; index++) {
-    const cell = cells[index];
-    if (keep && !keep[index]) {
-      clipped += 1;
-      continue;
+  // Percorre as células na ordem de leitura cartográfica:
+  // Do Norte para o Sul (linhas de cima para baixo) e do Oeste para o Leste (colunas da esquerda para a direita).
+  for (let r = rows - 1; r >= 0; r--) {
+    for (let c = 0; c < cols; c++) {
+      const index = r * cols + c;
+      const cell = cells[index];
+      if (!cell) continue;
+
+      if (keep && !keep[index]) {
+        clipped += 1;
+        continue;
+      }
+
+      let shapeName: string;
+      if (naming === 'matrix') {
+        const rowChar = rowLabel(rows - 1 - cell.row);
+        shapeName = `${rowChar}${cell.col + 1}`;
+      } else if (naming === 'numeric') {
+        shapeName = String(page);
+      } else {
+        // 'alpha' (padrão): sequencial alfabético iniciando sempre em A, B, C...
+        shapeName = rowLabel(alphaSeq);
+      }
+
+      features.push({
+        type: 'Feature',
+        properties: {
+          // Atributos no padrão do ArcMap "Grid Index Features".
+          OID: page,
+          PageName: shapeName,
+          ShapeName: shapeName,
+          PageNumber: page,
+          Shape_Length: round6(ringMetricsDeg(cell.ring).perimeter),
+          Shape_Area: round6(ringMetricsDeg(cell.ring).area),
+        },
+        geometry: { type: 'Polygon', coordinates: [cell.ring] },
+      });
+      page += 1;
+      alphaSeq += 1;
     }
-
-    features.push({
-      type: 'Feature',
-      properties: {
-        // Atributos no padrão do ArcMap "Grid Index Features".
-        OID: page,
-        PageName: `${rowLabel(cell.row)}${cell.col + 1}`,
-        ShapeName: `${rowLabel(cell.row)}${cell.col + 1}`,
-        PageNumber: page,
-        Shape_Length: round6(ringMetricsDeg(cell.ring).perimeter),
-        Shape_Area: round6(ringMetricsDeg(cell.ring).area),
-      },
-      geometry: { type: 'Polygon', coordinates: [cell.ring] },
-    });
-    page += 1;
   }
 
   if (features.length === 0) {
