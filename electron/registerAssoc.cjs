@@ -9,20 +9,20 @@ const fs = require('fs');
  * e o fs do Electron enxerga arquivos dentro do asar virtualmente. O Explorer NÃO
  * lê dentro do asar — registrar esse caminho deixava o ícone do arquivo em branco.
  */
-function resolveIconPath(app, targetExe) {
-  // 1) geodesk.ico instalado ao lado do executável (o instalador copia para {app}).
-  const besideExe = path.join(path.dirname(targetExe), 'geodesk.ico');
+function resolveIconPath(app, targetExe, iconFilename = 'geodesk.ico') {
+  // 1) instalado ao lado do executável (o instalador copia para {app}).
+  const besideExe = path.join(path.dirname(targetExe), iconFilename);
   if (fs.existsSync(besideExe)) return besideExe;
 
-  // 1b) Recurso extra do Electron (--extra-resource=geodesk.ico): fica em
-  //     resources\geodesk.ico, fora do asar, então o Explorer consegue ler.
+  // 1b) Recurso extra do Electron (--extra-resource=...): fica em
+  //     resources\<iconFilename>, fora do asar, então o Explorer consegue ler.
   if (app.isPackaged && process.resourcesPath) {
-    const extraResource = path.join(process.resourcesPath, 'geodesk.ico');
+    const extraResource = path.join(process.resourcesPath, iconFilename);
     if (fs.existsSync(extraResource)) return extraResource;
   }
 
-  // 2) Desenvolvimento: geodesk.ico na raiz do projeto (arquivo real no disco).
-  const rootIco = path.join(app.getAppPath(), 'geodesk.ico');
+  // 2) Desenvolvimento: na raiz do projeto (arquivo real no disco).
+  const rootIco = path.join(app.getAppPath(), iconFilename);
   if (fs.existsSync(rootIco) && !rootIco.includes('app.asar')) return rootIco;
 
   // 3) Empacotado: copia o .ico de dentro do asar para uma pasta permanente fora dele.
@@ -30,14 +30,19 @@ function resolveIconPath(app, targetExe) {
     if (fs.existsSync(rootIco)) {
       const destDir = app.getPath('userData');
       if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
-      const dest = path.join(destDir, 'geodesk.ico');
+      const dest = path.join(destDir, iconFilename);
       const needsCopy =
         !fs.existsSync(dest) || fs.statSync(dest).size !== fs.statSync(rootIco).size;
       if (needsCopy) fs.copyFileSync(rootIco, dest);
       if (fs.existsSync(dest)) return dest;
     }
   } catch (err) {
-    console.warn('Não foi possível extrair geodesk.ico do asar:', err);
+    console.warn(`Não foi possível extrair ${iconFilename} do asar:`, err);
+  }
+
+  // Fallback se for ícone de projeto: tenta o ícone principal
+  if (iconFilename !== 'geodesk.ico') {
+    return resolveIconPath(app, targetExe, 'geodesk.ico');
   }
 
   // 4) Último recurso: o próprio executável (o Windows extrai o ícone embutido).
@@ -75,13 +80,13 @@ function registerFileAssociations(app) {
 
   if (!fs.existsSync(targetExe) && !isDev) return;
 
-  const iconPath = resolveIconPath(app, targetExe);
+  const projectIconPath = resolveIconPath(app, targetExe, 'geodesk-project.ico');
   const openCommand = `"${targetExe}" "%1"`;
 
   // Associações que precisam existir no registro: [chave, valor esperado]
   const expected = [
     ['HKCU\\Software\\Classes\\.geodesk', 'GeoDesk.Project'],
-    ['HKCU\\Software\\Classes\\GeoDesk.Project\\DefaultIcon', iconPath],
+    ['HKCU\\Software\\Classes\\GeoDesk.Project\\DefaultIcon', projectIconPath],
     ['HKCU\\Software\\Classes\\GeoDesk.Project\\shell\\open\\command', openCommand],
   ];
 
@@ -125,7 +130,7 @@ function registerFileAssociations(app) {
       'reg add "HKCU\\Software\\Classes\\.geodesk" /ve /t REG_SZ /d "GeoDesk.Project" /f >nul',
       'reg add "HKCU\\Software\\Classes\\.geodesk\\OpenWithProgids" /v "GeoDesk.Project" /t REG_NONE /d "" /f >nul',
       'reg add "HKCU\\Software\\Classes\\GeoDesk.Project" /ve /t REG_SZ /d "Projeto GeoDesk" /f >nul',
-      `reg add "HKCU\\Software\\Classes\\GeoDesk.Project\\DefaultIcon" /ve /t REG_SZ /d ${regValue(iconPath)} /f >nul`,
+      `reg add "HKCU\\Software\\Classes\\GeoDesk.Project\\DefaultIcon" /ve /t REG_SZ /d ${regValue(projectIconPath)} /f >nul`,
       `reg add "HKCU\\Software\\Classes\\GeoDesk.Project\\shell\\open\\command" /ve /t REG_SZ /d ${regValue(openCommand)} /f >nul`,
       // Devolve o .mxd ao ArcMap (formato de terceiros)
       ...cleanup,

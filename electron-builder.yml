@@ -41,16 +41,19 @@ files:
   - "!.cache{,/**/*}"
   - "!*.{bat,cmd,ps1,vbs,iss,log,md}"
   - "!geodesk.png"
+  - "!geodesk-project.png"
   - "!index.html"
   - "!package-lock.json"
   - "!tsconfig.json"
   - "!vite.config.ts"
 
-# geodesk.ico fora do asar: o Windows Explorer lê o ícone do registro/associações
+# Ícones fora do asar: o Windows Explorer lê o ícone do registro/associações
 # direto do disco (electron/registerAssoc.cjs usa process.resourcesPath).
 extraResources:
   - from: geodesk.ico
     to: geodesk.ico
+  - from: geodesk-project.ico
+    to: geodesk-project.ico
 
 npmRebuild: false
 
@@ -88,23 +91,23 @@ fileAssociations:
   - ext: geodesk
     name: GeoDesk.Project
     description: Projeto GeoDesk
-    icon: geodesk.ico
+    icon: geodesk-project.ico
   - ext: shp
     name: GeoDesk.Shapefile
     description: Shapefile (GeoDesk)
-    icon: geodesk.ico
+    icon: geodesk-project.ico
   - ext: geojson
     name: GeoDesk.GeoJSON
     description: GeoJSON (GeoDesk)
-    icon: geodesk.ico
+    icon: geodesk-project.ico
   - ext: gpkg
     name: GeoDesk.GeoPackage
     description: GeoPackage (GeoDesk)
-    icon: geodesk.ico
+    icon: geodesk-project.ico
   - ext: [qgs, qgz]
     name: GeoDesk.QGISProject
     description: Projeto do QGIS (GeoDesk)
-    icon: geodesk.ico
+    icon: geodesk-project.ico
 
 # Canal de atualização (electron-updater) via GitHub Releases.
 # Requer GH_TOKEN — scripts/release-win.mjs obtém do `gh auth token`.

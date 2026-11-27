@@ -69,6 +69,7 @@ Name: "fileassoc"; Description: "Associar arquivos geoespaciais e projetos ao Ge
 Source: "{#MyAppSourceDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; Copia o icone para a pasta de instalacao
 Source: "geodesk.ico"; DestDir: "{app}"; Flags: ignoreversion
+Source: "geodesk-project.ico"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 ; Menu Iniciar
@@ -84,7 +85,7 @@ Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilen
 ; ProgId: .geodesk (Projeto GeoDesk)
 Root: HKA; Subkey: "Software\Classes\.geodesk"; ValueType: string; ValueName: ""; ValueData: "GeoDesk.Project"; Flags: uninsdeletevalue uninsdeletekeyifempty; Tasks: fileassoc
 Root: HKA; Subkey: "Software\Classes\GeoDesk.Project"; ValueType: string; ValueName: ""; ValueData: "Projeto GeoDesk"; Flags: uninsdeletekey; Tasks: fileassoc
-Root: HKA; Subkey: "Software\Classes\GeoDesk.Project\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\geodesk.ico"; Tasks: fileassoc
+Root: HKA; Subkey: "Software\Classes\GeoDesk.Project\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\geodesk-project.ico"; Tasks: fileassoc
 Root: HKA; Subkey: "Software\Classes\GeoDesk.Project\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#MyAppExeName}"" ""%1"""; Tasks: fileassoc
 ; ProgId: .mxd (ArcMap) — NAO registrado de proposito: o .mxd pertence ao ArcMap,
 ; que mantem o proprio icone e o programa original ao duplo-clique. O GeoDesk
