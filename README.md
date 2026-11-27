@@ -1,6 +1,6 @@
 # 🌍 GeoDesk — Estação de Trabalho Geoespacial Moderna
 
-[![Versão](https://img.shields.io/badge/versão-1.4.2-blue.svg)](https://github.com/joaopaulosantospe/geodesk-updates/releases)
+[![Versão](https://img.shields.io/badge/versão-1.4.3-blue.svg)](https://github.com/joaopaulosantospe/geodesk-updates/releases)
 [![Plataforma](https://img.shields.io/badge/plataforma-Windows%20x64-brightgreen.svg)](https://github.com/joaopaulosantospe/geodesk-updates/releases)
 [![Electron](https://img.shields.io/badge/Electron-33-47848F.svg)](https://www.electronjs.org/)
 [![React](https://img.shields.io/badge/React-18-61DAFB.svg)](https://react.dev/)

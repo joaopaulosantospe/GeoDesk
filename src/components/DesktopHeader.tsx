@@ -1409,7 +1409,7 @@ export default function DesktopHeader({
               GeoDesk é uma estação de trabalho cartográfica moderna de alta precisão para visualização, análise espacial, rotulagem e conversão de dados vetoriais (Shapefile, GeoJSON, GeoPackage, projetos do QGIS, KML/KMZ e ArcGIS REST).
             </p>
             <div style={{ display: 'grid', gap: 4, background: 'var(--bg-2)', padding: 10, borderRadius: 'var(--radius-sm)', fontSize: 11.5 }}>
-              <div><strong>Versão:</strong> {appVersion ?? '1.4.2'} (Desktop Engine)</div>
+              <div><strong>Versão:</strong> {appVersion ?? '1.4.3'} (Desktop Engine)</div>
               <div><strong>Licenciado para:</strong> João Paulo Santos</div>
               <div><strong>Motor Cartográfico:</strong> OpenLayers + Proj4js + Turf.js</div>
               <div><strong>Formatos Suportados:</strong> ESRI Shapefile (.shp), GeoJSON, GeoPackage (.gpkg), Projeto QGIS (.qgs/.qgz), KML, KMZ, Excel (.xlsx), CSV, PDF, ArcGIS REST</div>

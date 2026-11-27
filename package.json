@@ -1,7 +1,7 @@
 {
   "name": "geodesk",
   "productName": "GeoDesk",
-  "version": "1.4.2",
+  "version": "1.4.3",
   "private": true,
   "description": "GeoDesk - estacao de trabalho geoespacial moderna",
   "main": "electron/main.cjs",

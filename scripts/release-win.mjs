@@ -107,6 +107,7 @@ if (exists.status === 0) {
   const notes = [
     `## Novidades do GeoDesk ${version}:`,
     ``,
+    `• Feições de Índice da Grade (Quadrícula): rotulagem ajustada para iniciar do topo com A1, A2, A3... e seguir linha por linha (B1, B2...)`,
     `• Novo ícone visual dedicado para arquivos de projeto salvos (.geodesk), estilo documento/Office mantendo a identidade visual da marca`,
     `• Correção de layout e largura do slider de opacidade e presets na Simbologia de camadas`,
     `• Aprimoramento das ferramentas de Buffer e Interseção Espacial com seleção inteligente de camadas`,

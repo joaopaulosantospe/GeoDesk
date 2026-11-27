@@ -1,6 +1,6 @@
 {
-  "version": "1.4.2",
-  "url": "https://github.com/joaopaulosantospe/geodesk-updates/releases/download/v1.4.2/GeoDesk_Instalador_v1.4.2.exe",
-  "notes": "• Novo ícone visual dedicado para arquivos de projeto salvos (.geodesk), estilo documento/Office mantendo a identidade visual da marca\n• Correção de layout e largura do slider de opacidade e presets na Simbologia de camadas\n• Aprimoramento das ferramentas de Buffer e Interseção Espacial com seleção inteligente de camadas\n• Otimizações de renderização, associações de arquivos e estabilidade geral",
+  "version": "1.4.3",
+  "url": "https://github.com/joaopaulosantospe/geodesk-updates/releases/download/v1.4.3/GeoDesk_Instalador_v1.4.3.exe",
+  "notes": "• Feições de Índice da Grade (Quadrícula): rotulagem ajustada para iniciar do topo com A1, A2, A3... e seguir linha por linha (B1, B2...)\n• Novo ícone visual dedicado para arquivos de projeto salvos (.geodesk)\n• Correção de layout e largura do slider de opacidade e presets na Simbologia de camadas\n• Otimizações de renderização, associações de arquivos e estabilidade geral",
   "releasedAt": "2026-11-27"
 }
