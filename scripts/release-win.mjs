@@ -107,13 +107,10 @@ if (exists.status === 0) {
   const notes = [
     `## Novidades do GeoDesk ${version}:`,
     ``,
-    `• Google Street View 360° integrado ao mapa com marcador interativo Pegman`,
-    `• 15 novos modelos de marcadores para camadas de pontos (pinos, estrela, hexágono, cruz, etc.)`,
-    `• Mapas base Google (Híbrido, Satélite e Ruas) em alta resolução`,
-    `• Zoom contínuo ampliado até nível 24 sem mensagens de bloqueio`,
-    `• Novos atalhos de teclado: 'S' para Street View e 'Alt+F4' para fechar o sistema`,
-    `• Barra de rolagem ajustada no painel de camadas e melhorias visuais`,
-    `• Otimizações de renderização e estabilidade da interface`,
+    `• Novo ícone visual dedicado para arquivos de projeto salvos (.geodesk), estilo documento/Office mantendo a identidade visual da marca`,
+    `• Correção de layout e largura do slider de opacidade e presets na Simbologia de camadas`,
+    `• Aprimoramento das ferramentas de Buffer e Interseção Espacial com seleção inteligente de camadas`,
+    `• Otimizações de renderização, associações de arquivos e estabilidade geral`,
   ].join('\n');
   const create = run(
     'gh',

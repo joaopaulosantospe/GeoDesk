@@ -1,6 +1,6 @@
 {
-  "version": "1.4.1",
-  "url": "https://github.com/joaopaulosantospe/geodesk-updates/releases/download/v1.4.1/GeoDesk_Instalador_v1.4.1.exe",
-  "notes": "• Google Street View 360° integrado ao mapa com marcador interativo Pegman\n• 15 novos modelos de marcadores para camadas de pontos (pinos, estrela, hexágono, cruz, etc.)\n• Mapas base Google (Híbrido, Satélite e Ruas) em alta definição\n• Zoom contínuo ampliado até nível 24 sem mensagens de bloqueio\n• Novos atalhos de teclado: 'S' para Street View e 'Alt+F4' para fechar o sistema\n• Barra de rolagem ajustada no painel de camadas e melhorias visuais\n• Otimizações de renderização e estabilidade da interface",
-  "releasedAt": "2026-11-21"
+  "version": "1.4.2",
+  "url": "https://github.com/joaopaulosantospe/geodesk-updates/releases/download/v1.4.2/GeoDesk_Instalador_v1.4.2.exe",
+  "notes": "• Novo ícone visual dedicado para arquivos de projeto salvos (.geodesk), estilo documento/Office mantendo a identidade visual da marca\n• Correção de layout e largura do slider de opacidade e presets na Simbologia de camadas\n• Aprimoramento das ferramentas de Buffer e Interseção Espacial com seleção inteligente de camadas\n• Otimizações de renderização, associações de arquivos e estabilidade geral",
+  "releasedAt": "2026-11-27"
 }
