@@ -32,7 +32,7 @@ const GRID_STYLE: Partial<LayerStyle> = {
   strokeWidth: 1,
 };
 
-/** Rótulo de cada célula com o ShapeName (A, B, C…), com destaque nítido. */
+/** Rótulo de cada célula com o ShapeName (A1, A2, B1…), com destaque nítido. */
 const GRID_LABELS: LabelStyle = {
   enabled: true,
   field: 'ShapeName',
@@ -46,7 +46,6 @@ const GRID_LABELS: LabelStyle = {
 
 export type GridUnit = 'mm' | 'cm' | 'm' | 'km' | 'in' | 'ft';
 export type GridOrigin = 'view' | 'selection' | 'layer';
-export type GridNaming = 'alpha' | 'matrix' | 'numeric';
 
 export interface GridOptions {
   /** Classe de Feição de Saída (nome da camada gerada). */
@@ -76,8 +75,6 @@ export interface GridOptions {
   clipToInput: boolean;
   /** "Rotular as células com o ShapeName" (padrão: ligado). */
   labelCells?: boolean;
-  /** Formato do ShapeName: 'alpha' (A, B, C...), 'matrix' (A1, A2...) ou 'numeric' (1, 2, 3...). Padrão: 'alpha'. */
-  gridNaming?: GridNaming;
 }
 
 export type GridResult = { count: number; name: string; clipped: number } | { error: string };
@@ -272,35 +269,39 @@ export function generateGrid(options: GridOptions): GridResult {
     ? markIntersectingCells(cells, inputs, { utm, x0, y0, widthM, heightM, rows, cols })
     : null;
 
-  const naming: GridNaming = options.gridNaming ?? 'alpha';
   const features: Feature<Polygon>[] = [];
   let clipped = 0;
   let page = startPage;
-  let alphaSeq = Math.max(0, startPage - 1);
+  let activeRowIndex = 0;
 
-  // Percorre as células na ordem de leitura cartográfica:
-  // Do Norte para o Sul (linhas de cima para baixo) e do Oeste para o Leste (colunas da esquerda para a direita).
+  // Percorre as linhas do Norte para o Sul (topo para baixo)
+  // e as colunas do Oeste para o Leste (esquerda para a direita).
+  // Cada linha ativa inicia em A, B, C... e suas células são numeradas sequencialmente:
+  // Linha 1 (topo): A1, A2, A3...
+  // Linha 2: B1, B2, B3...
+  // Linha 3: C1, C2, C3...
   for (let r = rows - 1; r >= 0; r--) {
+    const rowCells: GridCell[] = [];
     for (let c = 0; c < cols; c++) {
       const index = r * cols + c;
       const cell = cells[index];
       if (!cell) continue;
-
       if (keep && !keep[index]) {
         clipped += 1;
         continue;
       }
+      rowCells.push(cell);
+    }
 
-      let shapeName: string;
-      if (naming === 'matrix') {
-        const rowChar = rowLabel(rows - 1 - cell.row);
-        shapeName = `${rowChar}${cell.col + 1}`;
-      } else if (naming === 'numeric') {
-        shapeName = String(page);
-      } else {
-        // 'alpha' (padrão): sequencial alfabético iniciando sempre em A, B, C...
-        shapeName = rowLabel(alphaSeq);
-      }
+    if (rowCells.length === 0) continue;
+
+    const rowChar = rowLabel(activeRowIndex);
+    activeRowIndex += 1;
+
+    for (let colInRow = 0; colInRow < rowCells.length; colInRow++) {
+      const cell = rowCells[colInRow];
+      const colNum = colInRow + 1;
+      const shapeName = `${rowChar}${colNum}`;
 
       features.push({
         type: 'Feature',
@@ -316,7 +317,6 @@ export function generateGrid(options: GridOptions): GridResult {
         geometry: { type: 'Polygon', coordinates: [cell.ring] },
       });
       page += 1;
-      alphaSeq += 1;
     }
   }
 
