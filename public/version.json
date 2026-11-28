@@ -1,6 +1,6 @@
 {
-  "version": "1.4.3",
-  "url": "https://github.com/joaopaulosantospe/geodesk-updates/releases/download/v1.4.3/GeoDesk_Instalador_v1.4.3.exe",
-  "notes": "• Feições de Índice da Grade (Quadrícula): rotulagem ajustada para iniciar do topo com A1, A2, A3... e seguir linha por linha (B1, B2...)\n• Novo ícone visual dedicado para arquivos de projeto salvos (.geodesk)\n• Correção de layout e largura do slider de opacidade e presets na Simbologia de camadas\n• Otimizações de renderização, associações de arquivos e estabilidade geral",
-  "releasedAt": "2026-11-27"
+  "version": "1.4.4",
+  "url": "https://github.com/joaopaulosantospe/geodesk-updates/releases/download/v1.4.4/GeoDesk_Instalador_v1.4.4.exe",
+  "notes": "• Verificação de alterações não salvas ao fechar o sistema (com opções Salvar, Não Salvar e Cancelar)\n• Encerramento seguro de processos e janelas ao confirmar encerramento do sistema\n• Indicador dinâmico de projeto com alterações não salvas (*) na barra de título\n• Feições de Índice da Grade com rotulagem matricial sequencial (A1, A2, A3...)\n• Novo ícone visual dedicado para arquivos de projeto salvos (.geodesk)\n• Otimizações de desempenho, renderização e estabilidade geral",
+  "releasedAt": "2026-11-28"
 }
