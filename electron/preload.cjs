@@ -15,7 +15,15 @@ contextBridge.exposeInMainWorld('geodeskDisk', {
   getStartupFile: () => ipcRenderer.invoke('geodesk:startup-file'),
   saveFile: (filePath, content) => ipcRenderer.invoke('geodesk:save-file', filePath, content),
   showSaveDialog: (defaultName) => ipcRenderer.invoke('geodesk:show-save-dialog', defaultName),
+  confirmSaveBeforeClose: (projectName) =>
+    ipcRenderer.invoke('geodesk:confirm-save-before-close', projectName),
+  forceClose: () => ipcRenderer.invoke('geodesk:force-close'),
   quit: () => ipcRenderer.invoke('geodesk:quit'),
+  onRequestClose: (callback) => {
+    const handler = () => callback();
+    ipcRenderer.on('geodesk:request-close', handler);
+    return () => ipcRenderer.removeListener('geodesk:request-close', handler);
+  },
   onOpenFile: (callback) => {
     const handler = (_event, filePath) => callback(filePath);
     ipcRenderer.on('geodesk:open-file', handler);

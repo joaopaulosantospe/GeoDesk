@@ -19,9 +19,48 @@ const { app, BrowserWindow, ipcMain } = electronModule;
 const path = require('path');
 const fs = require('fs/promises');
 
-// Fecha o aplicativo
+// Fecha o aplicativo solicitando confirmação de salvamento de alterações se necessário
 ipcMain.handle('geodesk:quit', () => {
-  app.quit();
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.close();
+  } else {
+    app.quit();
+  }
+});
+
+// Diálogo nativo de confirmação para salvar alterações antes de fechar o sistema
+ipcMain.handle('geodesk:confirm-save-before-close', async (event, projectName) => {
+  const win = BrowserWindow.fromWebContents(event.sender) || mainWindow;
+  const { dialog } = require('electron');
+  const projName =
+    typeof projectName === 'string' && projectName.trim() ? projectName.trim() : 'meu-projeto';
+
+  const result = await dialog.showMessageBox(win, {
+    type: 'warning',
+    buttons: ['Salvar', 'Não Salvar', 'Cancelar'],
+    defaultId: 0,
+    cancelId: 2,
+    title: 'GeoDesk',
+    message: `Deseja salvar as alterações feitas no projeto "${projName}"?`,
+    detail: 'Se você fechar sem salvar, as alterações não salvas serão perdidas.',
+    noLink: true,
+  });
+
+  // response: 0 = Salvar, 1 = Não Salvar, 2 = Cancelar
+  if (result.response === 0) return 'save';
+  if (result.response === 1) return 'dontsave';
+  return 'cancel';
+});
+
+// Força o fechamento da janela ignorando o dirty-checking (após confirmação do usuário)
+ipcMain.handle('geodesk:force-close', (event) => {
+  const win = (event && event.sender && BrowserWindow.fromWebContents(event.sender)) || mainWindow;
+  if (win && !win.isDestroyed()) {
+    win.__forceClose = true;
+    win.close();
+  } else {
+    app.quit();
+  }
 });
 
 const SIDECAR_EXTS = ['.dbf', '.prj', '.cpg'];
@@ -305,6 +344,9 @@ ipcMain.handle('geodesk:install-update', () => {
   const updater = getAutoUpdater();
   if (!updater || !updateDownloaded) return false;
   try {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.__forceClose = true;
+    }
     // isSilent=false: mostra o instalador NSIS (mensagens em pt-BR) para o
     // usuário confirmar; isForceRunAfter=true: relança o GeoDesk ao final.
     setImmediate(() => updater.quitAndInstall(false, true));
@@ -467,6 +509,17 @@ function createWindow(immediate) {
     },
   });
   mainWindow = win;
+
+  // Intercepta o fechamento da janela (botão X ou Alt+F4) para verificar alterações não salvas
+  win.on('close', (e) => {
+    if (win.__forceClose) {
+      return;
+    }
+    if (win.webContents && !win.webContents.isCrashed()) {
+      e.preventDefault();
+      win.webContents.send('geodesk:request-close');
+    }
+  });
 
   if (immediate) {
     // Recriação de janela (ex.: activate no macOS) — não há splash na frente.

@@ -35,6 +35,8 @@ interface AppState {
   rightPanelOpen: boolean;
   status: string;
   streetViewLocation: { lat: number; lon: number } | null;
+  isDirty: boolean;
+  setIsDirty: (dirty: boolean) => void;
   addLayer: (layer: LayerRecord) => void;
   removeLayer: (id: string) => void;
   updateLayer: (id: string, patch: Partial<LayerRecord>) => void;
@@ -61,17 +63,29 @@ export const useAppStore = create<AppState>((set, get) => ({
   rightPanelOpen: false,
   status: 'Pronto',
   streetViewLocation: null,
+  isDirty: false,
 
-  addLayer: (layer) => set((s) => ({ layers: [...s.layers, layer], activeLayerId: layer.id })),
+  setIsDirty: (isDirty) => set({ isDirty }),
+
+  addLayer: (layer) =>
+    set((s) => ({
+      layers: [...s.layers, layer],
+      activeLayerId: layer.id,
+      isDirty: true,
+    })),
 
   removeLayer: (id) =>
     set((s) => ({
       layers: s.layers.filter((l) => l.id !== id),
       activeLayerId: s.activeLayerId === id ? null : s.activeLayerId,
+      isDirty: true,
     })),
 
   updateLayer: (id, patch) =>
-    set((s) => ({ layers: s.layers.map((l) => (l.id === id ? { ...l, ...patch } : l)) })),
+    set((s) => ({
+      layers: s.layers.map((l) => (l.id === id ? { ...l, ...patch } : l)),
+      isDirty: true,
+    })),
 
   reorderLayer: (id, dir) =>
     set((s) => {
@@ -82,7 +96,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       const layers = [...s.layers];
       const [item] = layers.splice(idx, 1);
       layers.splice(target, 0, item);
-      return { layers };
+      return { layers, isDirty: true };
     }),
 
   // Reordenação por arrastar: posiciona `id` logo acima ('above') ou abaixo
@@ -100,7 +114,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       if (from < insert) insert -= 1;
       layers.splice(Math.max(0, Math.min(insert, layers.length)), 0, item);
       if (layers.every((l, i) => l === s.layers[i])) return s;
-      return { layers };
+      return { layers, isDirty: true };
     }),
 
   // Traz a camada para o topo visual da pilha (maior z-index no mapa).
@@ -111,7 +125,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       const layers = [...s.layers];
       const [item] = layers.splice(index, 1);
       layers.push(item);
-      return { layers };
+      return { layers, isDirty: true };
     }),
 
   // Envia a camada para o fundo da pilha (dados ficam por cima, como no ArcMap).
@@ -122,11 +136,15 @@ export const useAppStore = create<AppState>((set, get) => ({
       const layers = [...s.layers];
       const [item] = layers.splice(index, 1);
       layers.unshift(item);
-      return { layers };
+      return { layers, isDirty: true };
     }),
 
   setActiveLayer: (id) => set({ activeLayerId: id }),
-  setBasemap: (id) => set({ basemapId: id }),
+  setBasemap: (id) =>
+    set((s) => ({
+      basemapId: id,
+      isDirty: s.layers.length > 0 ? true : s.isDirty,
+    })),
   setTool: (tool) =>
     set((s) => ({
       tool: tool === null ? null : s.tool === tool ? null : tool,

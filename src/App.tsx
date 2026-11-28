@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { initMap, setBasemap as setMapBasemap, updateMapSize, whenMapReady } from './map/mapContext';
 import { openStartupFile, openPathFromDisk } from './import/externalFile';
+import { saveProject, getCurrentProjectName } from './export/projectManager';
 import { useAppStore } from './store';
 import StatusBar from './components/StatusBar';
 import RightPanel from './components/RightPanel';
@@ -61,12 +62,84 @@ export default function App() {
     return () => clearTimeout(t);
   }, [sidebarOpen, rightPanelOpen]);
 
+  const isDirty = useAppStore((s) => s.isDirty);
+  const layersCount = useAppStore((s) => s.layers.length);
+  const projectName = getCurrentProjectName();
+  const displayTitle =
+    layersCount > 0
+      ? `GeoDesk — ${projectName}${isDirty ? ' *' : ''}`
+      : 'GeoDesk — Estação Geoespacial';
+
+  useEffect(() => {
+    document.title = displayTitle;
+  }, [displayTitle]);
+
+  // Interceptação de fechamento da janela com confirmação de alterações não salvas
+  useEffect(() => {
+    let closingInProgress = false;
+
+    const handleCloseRequest = async () => {
+      if (closingInProgress) return;
+      closingInProgress = true;
+
+      try {
+        const store = useAppStore.getState();
+        const hasLayers = store.layers.length > 0;
+        const dirty = store.isDirty;
+
+        // Se não houver alterações pendentes ou não houver camadas no projeto, fecha diretamente
+        if (!dirty || !hasLayers) {
+          await window.geodeskDisk?.forceClose();
+          return;
+        }
+
+        const currentProj = getCurrentProjectName();
+        const choice = await window.geodeskDisk?.confirmSaveBeforeClose(currentProj);
+
+        if (choice === 'save') {
+          const saved = await saveProject();
+          if (saved) {
+            await window.geodeskDisk?.forceClose();
+            return;
+          }
+          // Se o usuário cancelou o diálogo de "Salvar Como" ou falhou ao salvar, mantém aberto
+        } else if (choice === 'dontsave') {
+          await window.geodeskDisk?.forceClose();
+          return;
+        }
+        // Se 'cancel', não faz nada e permanece no aplicativo
+      } catch (err) {
+        console.error('Erro ao verificar alterações antes de fechar:', err);
+      } finally {
+        closingInProgress = false;
+      }
+    };
+
+    const unsubscribe = window.geodeskDisk?.onRequestClose?.(() => {
+      void handleCloseRequest();
+    });
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      const store = useAppStore.getState();
+      if (store.isDirty && store.layers.length > 0) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
+
   return (
     <div className="app-shell">
       {/* Faixa de título da janela (substitui a barra de título nativa, que
           exibia o ícone): texto apenas, também serve para arrastar a janela. */}
       <div className="window-titlebar">
-        <span className="window-titlebar-title">GeoDesk — Estação Geoespacial</span>
+        <span className="window-titlebar-title">{displayTitle}</span>
       </div>
 
       <DragDropOverlay />

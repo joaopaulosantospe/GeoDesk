@@ -1,6 +1,6 @@
 import { addGeoJSONLayer, zoomToLayer } from '../map/mapContext';
 import { useAppStore } from '../store';
-import { loadProjectFile } from '../export/projectManager';
+import { loadProjectFile, getCurrentProjectName, setCurrentProjectName } from '../export/projectManager';
 import { detectGeoJSONCrs, deriveFeatureMeta, errorMessage } from './geojsonLoader';
 import { loadGeoPackage } from './gpkgLoader';
 import { loadQgisProject } from './qgisProject';
@@ -41,20 +41,35 @@ export async function openPathFromDisk(filePath: string): Promise<void> {
     switch (extension) {
       case '.gpkg':
         await loadGeoPackage(file);
+        if (getCurrentProjectName() === 'meu-projeto') {
+          setCurrentProjectName(name.replace(/\.gpkg$/i, ''));
+        }
         break;
       case '.qgs':
       case '.qgz':
         await loadQgisProject(file, filePath);
+        if (getCurrentProjectName() === 'meu-projeto') {
+          setCurrentProjectName(name.replace(/\.(qgs|qgz)$/i, ''));
+        }
         break;
       case '.mxd':
         await loadMxdProject(file, filePath);
+        if (getCurrentProjectName() === 'meu-projeto') {
+          setCurrentProjectName(name.replace(/\.mxd$/i, ''));
+        }
         break;
       case '.shp':
         zoomToLayer(await openShapefile(filePath, name, file));
+        if (getCurrentProjectName() === 'meu-projeto') {
+          setCurrentProjectName(name.replace(/\.shp$/i, ''));
+        }
         break;
       case '.geojson':
       case '.json':
         zoomToLayer(await openGeoJSON(file));
+        if (getCurrentProjectName() === 'meu-projeto') {
+          setCurrentProjectName(name.replace(/\.(geojson|json)$/i, ''));
+        }
         break;
       case '.geodesk':
         await loadProjectFile(file, filePath);

@@ -26,8 +26,14 @@ interface GeodeskDiskApi {
   saveFile(filePath: string, content: string): Promise<boolean>;
   /** Abre o diálogo nativo do sistema para Salvar Como. */
   showSaveDialog(defaultName?: string): Promise<string | null>;
-  /** Fecha o aplicativo. */
+  /** Pergunta ao usuário se deseja salvar alterações antes de fechar o sistema. */
+  confirmSaveBeforeClose(projectName?: string): Promise<'save' | 'dontsave' | 'cancel'>;
+  /** Força o fechamento da janela do aplicativo sem nova interceptação. */
+  forceClose(): Promise<void>;
+  /** Fecha o aplicativo (passa pelo ciclo de verificação de alterações não salvas). */
   quit(): Promise<void>;
+  /** Registra listener para pedidos de fechamento da janela (X ou Alt+F4). */
+  onRequestClose?(callback: () => void): () => void;
   /** Registra listener para arquivos abertos enquanto o aplicativo já está em execução. */
   onOpenFile?(callback: (filePath: string) => void): () => void;
 }

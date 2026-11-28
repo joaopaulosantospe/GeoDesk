@@ -62,7 +62,7 @@ import { loadGeoPackage } from '../import/gpkgLoader';
 import { loadQgisProject } from '../import/qgisProject';
 import { loadMxdProject } from '../import/mxdProject';
 import { addArcGISService, getArcGISServiceInfo, isArcGISRootUrl, type ArcGISServiceInfo } from '../import/arcgisRest';
-import { saveProject, saveProjectAs, loadProjectFile, getCurrentProjectName } from '../export/projectManager';
+import { saveProject, saveProjectAs, loadProjectFile, getCurrentProjectName, setCurrentProjectName } from '../export/projectManager';
 import ExportKmzDialog from './ExportKmzDialog';
 import ShortcutsModal from './ShortcutsModal';
 import UpdateModal from './UpdateModal';
@@ -338,6 +338,9 @@ export default function DesktopHeader({
     try {
       setStatus('Carregando Shapefile…');
       await loadShapefile(files);
+      if (getCurrentProjectName() === 'meu-projeto' && files[0]?.name) {
+        setCurrentProjectName(files[0].name.replace(/\.[^./\\]+$/, ''));
+      }
       setStatus('Shapefile importado com sucesso');
     } catch (err) {
       setStatus(`Erro ao importar Shapefile: ${err instanceof Error ? err.message : String(err)}`);
@@ -352,6 +355,9 @@ export default function DesktopHeader({
     try {
       setStatus('Carregando pasta…');
       await loadShapefile(files);
+      if (getCurrentProjectName() === 'meu-projeto' && files[0]?.name) {
+        setCurrentProjectName(files[0].name.replace(/\.[^./\\]+$/, ''));
+      }
       setStatus('Pasta importada com sucesso');
     } catch (err) {
       setStatus(`Erro ao importar pasta: ${err instanceof Error ? err.message : String(err)}`);
@@ -366,6 +372,9 @@ export default function DesktopHeader({
     try {
       setStatus('Carregando GeoJSON…');
       await loadGeoJSONFile(files[0]);
+      if (getCurrentProjectName() === 'meu-projeto' && files[0]?.name) {
+        setCurrentProjectName(files[0].name.replace(/\.[^./\\]+$/, ''));
+      }
       setStatus('GeoJSON importado com sucesso');
     } catch (err) {
       setStatus(`Erro ao importar GeoJSON: ${err instanceof Error ? err.message : String(err)}`);

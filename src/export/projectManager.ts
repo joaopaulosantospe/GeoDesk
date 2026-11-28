@@ -99,8 +99,9 @@ export function serializeCurrentProject(name?: string): GeoDeskProject {
 /**
  * Salva o projeto diretamente no arquivo aberto (sem abrir tela de Salvar Como).
  * Se o projeto já tem um caminho no disco (aberto via Electron), grava diretamente no mesmo arquivo.
+ * Retorna true se foi salvo com sucesso, ou false caso tenha sido cancelado/falhado.
  */
-export async function saveProject(): Promise<void> {
+export async function saveProject(): Promise<boolean> {
   const project = serializeCurrentProject();
   const jsonStr = JSON.stringify(project, null, 2);
 
@@ -109,32 +110,44 @@ export async function saveProject(): Promise<void> {
     const ok = await window.geodeskDisk.saveFile(currentProjectFilePath, jsonStr);
     if (ok) {
       useAppStore.getState().setStatus(`Projeto salvo com sucesso em: ${currentProjectFilePath}`);
-      return;
+      useAppStore.getState().setIsDirty(false);
+      return true;
     }
+    return false;
+  }
+
+  // Se estiver no Electron e ainda não possuir caminho, abre caixa de diálogo nativa
+  if (window.geodeskDisk?.showSaveDialog) {
+    return await saveProjectAs();
   }
 
   // Fallback: download direto com o mesmo nome do projeto
   downloadText(getProjectFileName(), jsonStr, 'application/json');
   useAppStore.getState().setStatus(`Projeto "${currentProjectName}" salvo com sucesso`);
+  useAppStore.getState().setIsDirty(false);
+  return true;
 }
 
 /**
  * Salva o projeto permitindo definir um novo nome / destino (Salvar Como...).
+ * Retorna true se salvo com sucesso, ou false se o usuário cancelou.
  */
-export async function saveProjectAs(customName?: string): Promise<void> {
+export async function saveProjectAs(customName?: string): Promise<boolean> {
   // Se estiver no Electron e nenhuma especificação manual for passada, usa a caixa de diálogo nativa
   if (window.geodeskDisk?.showSaveDialog && (!customName || customName.trim() === '')) {
     const defaultName = getProjectFileName();
     const chosenPath = await window.geodeskDisk.showSaveDialog(defaultName);
-    if (!chosenPath) return; // Usuário cancelou
+    if (!chosenPath) return false; // Usuário cancelou
     setCurrentProjectFilePath(chosenPath);
     const project = serializeCurrentProject(currentProjectName);
     const jsonStr = JSON.stringify(project, null, 2);
     const ok = await window.geodeskDisk.saveFile(chosenPath, jsonStr);
     if (ok) {
       useAppStore.getState().setStatus(`Projeto salvo como "${currentProjectName}"`);
+      useAppStore.getState().setIsDirty(false);
+      return true;
     }
-    return;
+    return false;
   }
 
   const cleanName = customName ? customName.trim() : currentProjectName;
@@ -143,7 +156,9 @@ export async function saveProjectAs(customName?: string): Promise<void> {
   const project = serializeCurrentProject(cleanName);
   const jsonStr = JSON.stringify(project, null, 2);
   downloadText(getProjectFileName(), jsonStr, 'application/json');
-  useAppStore.getState().setStatus(`Projeto salvo como "${currentProjectName}"`);
+  useAppStore.getState().setStatus(`Projeto "${currentProjectName}" salvo com sucesso`);
+  useAppStore.getState().setIsDirty(false);
+  return true;
 }
 
 /**
@@ -249,4 +264,5 @@ export async function loadProjectFile(file: File, projectPathOverride?: string |
   }
 
   store.setStatus(`Projeto "${currentProjectName}" carregado (${addedIds.length} camadas)`);
+  store.setIsDirty(false);
 }
