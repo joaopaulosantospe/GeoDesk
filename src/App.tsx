@@ -89,7 +89,11 @@ export default function App() {
 
         // Se não houver alterações pendentes ou não houver camadas no projeto, fecha diretamente
         if (!dirty || !hasLayers) {
-          await window.geodeskDisk?.forceClose();
+          if (window.geodeskDisk?.forceClose) {
+            await window.geodeskDisk.forceClose();
+          } else {
+            window.close();
+          }
           return;
         }
 
@@ -97,14 +101,26 @@ export default function App() {
         const choice = await window.geodeskDisk?.confirmSaveBeforeClose(currentProj);
 
         if (choice === 'save') {
-          const saved = await saveProject();
-          if (saved) {
-            await window.geodeskDisk?.forceClose();
-            return;
+          try {
+            const saved = await saveProject();
+            if (saved) {
+              if (window.geodeskDisk?.forceClose) {
+                await window.geodeskDisk.forceClose();
+              } else {
+                window.close();
+              }
+              return;
+            }
+          } catch (err) {
+            console.error('Erro ao salvar projeto antes de fechar:', err);
           }
           // Se o usuário cancelou o diálogo de "Salvar Como" ou falhou ao salvar, mantém aberto
         } else if (choice === 'dontsave') {
-          await window.geodeskDisk?.forceClose();
+          if (window.geodeskDisk?.forceClose) {
+            await window.geodeskDisk.forceClose();
+          } else {
+            window.close();
+          }
           return;
         }
         // Se 'cancel', não faz nada e permanece no aplicativo

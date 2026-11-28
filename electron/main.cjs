@@ -57,10 +57,9 @@ ipcMain.handle('geodesk:force-close', (event) => {
   const win = (event && event.sender && BrowserWindow.fromWebContents(event.sender)) || mainWindow;
   if (win && !win.isDestroyed()) {
     win.__forceClose = true;
-    win.close();
-  } else {
-    app.quit();
+    win.destroy();
   }
+  app.exit(0);
 });
 
 const SIDECAR_EXTS = ['.dbf', '.prj', '.cpg'];
