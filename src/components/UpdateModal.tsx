@@ -3,11 +3,6 @@ import {
   Sparkles,
   CheckCircle2,
   Download,
-  Compass,
-  MapPin,
-  Globe2,
-  ZoomIn,
-  Keyboard,
   Clock,
   X,
   RefreshCw,
@@ -35,49 +30,19 @@ interface HighlightItem {
   badge?: string;
 }
 
-const DEFAULT_V140_HIGHLIGHTS: HighlightItem[] = [
+/** Fallback genérico quando as notas da release estão vazias ou indisponíveis. */
+const GENERIC_FALLBACK: HighlightItem[] = [
   {
-    icon: <Compass size={18} color="#f59e0b" />,
-    title: 'Google Street View 360°',
-    desc: 'Explore vias e rodovias em visão panorâmica 360° clicando diretamente em qualquer ponto do mapa com o novo marcador Pegman.',
-    badge: 'Novo',
-  },
-  {
-    icon: <MapPin size={18} color="#ef4444" />,
-    title: '15 Novos Modelos de Marcadores',
-    desc: 'Pinos clássicos, alvos, estrelas, cruzes, hexágonos e novas geometrias personalizadas para camadas de pontos.',
-    badge: 'Cartografia',
-  },
-  {
-    icon: <Globe2 size={18} color="#3b82f6" />,
-    title: 'Mapas Base Google',
-    desc: 'Google Híbrido, Satélite e Ruas integrados como planos de fundo oficiais de alta resolução.',
-    badge: 'Camadas',
-  },
-  {
-    icon: <ZoomIn size={18} color="#10b981" />,
-    title: 'Zoom Contínuo até Nível 24',
-    desc: 'Navegação e aproximação ultra-profunda sem telas de dados indisponíveis.',
-    badge: 'Precisão',
-  },
-  {
-    icon: <Keyboard size={18} color="#8b5cf6" />,
-    title: 'Novos Atalhos de Teclado',
-    desc: 'Pressione "S" para Street View instantâneo e "Alt + F4" para encerramento seguro.',
-    badge: 'Agilidade',
-  },
-  {
-    icon: <Zap size={18} color="#06b6d4" />,
-    title: 'Otimização e Barra de Rolagem',
-    desc: 'Visualização completa da última camada no painel, arraste refinado de opacidade e maior fluidez.',
-    badge: 'Desempenho',
+    icon: <Sparkles size={18} color="#3b82f6" />,
+    title: 'Melhorias e correções',
+    desc: 'Esta versão inclui melhorias de desempenho, estabilidade e correções gerais.',
   },
 ];
 
 function getHighlights(rawNotes: string | null | undefined, _version?: string | null): HighlightItem[] {
-  // Se for nulo ou contiver a mensagem automática genérica, usa os destaques premium da v1.4.0
+  // Sem notas ou mensagem automática genérica → fallback simples (sem features hardcoded).
   if (!rawNotes || rawNotes.includes('atualização automática pelo menu') || rawNotes.includes('electron-updater')) {
-    return DEFAULT_V140_HIGHLIGHTS;
+    return GENERIC_FALLBACK;
   }
 
   // Limpa tags HTML como <p>, </p>, <div>, etc.
@@ -89,14 +54,14 @@ function getHighlights(rawNotes: string | null | undefined, _version?: string | 
     .replace(/&gt;/g, '>')
     .trim();
 
-  if (!cleaned) return DEFAULT_V140_HIGHLIGHTS;
+  if (!cleaned) return GENERIC_FALLBACK;
 
   const lines = cleaned
     .split(/\r?\n/)
     .map((l) => l.trim())
     .filter((l) => l.length > 0 && !l.startsWith('##'));
 
-  if (lines.length === 0) return DEFAULT_V140_HIGHLIGHTS;
+  if (lines.length === 0) return GENERIC_FALLBACK;
 
   return lines.map((line, idx) => {
     const text = line.replace(/^[•\-*]\s*/, '').trim();

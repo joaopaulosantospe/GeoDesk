@@ -108,12 +108,8 @@ if (exists.status === 0) {
     `## Novidades do GeoDesk ${version}:`,
     ``,
     `• Verificação de alterações não salvas: ao fechar o sistema com edições pendentes, exibe diálogo com opções Salvar, Não Salvar e Cancelar`,
-    `• Encerramento seguro e definitivo de processos e janelas ao confirmar encerramento do sistema`,
-    `• Indicador dinâmico de projeto com alterações não salvas (*) na barra de título e no documento`,
-    `• Feições de Índice da Grade (Quadrícula): rotulagem matricial iniciando do topo com A1, A2, A3... e seguindo linha a linha (B1, B2...)`,
-    `• Novo ícone visual dedicado para arquivos de projeto salvos (.geodesk), mantendo identidade visual do aplicativo`,
-    `• Correção de layout e largura do slider de opacidade e presets na Simbologia de camadas`,
-    `• Otimizações de renderização, associações de arquivos e estabilidade geral`,
+    `• Encerramento seguro e definitivo ao confirmar fechamento do sistema`,
+    `• Indicador dinâmico de alterações não salvas (*) na barra de título`,
   ].join('\n');
   const create = run(
     'gh',
